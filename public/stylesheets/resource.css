@@ -1,0 +1,9 @@
+#add-resource{width:200px;margin:0 auto;padding:10px;text-align:center}
+.resource-unit{padding:25px;border-bottom:thin dashed #c8c8c8;border-radius:5px}
+.resource-link{padding:0 0 5px 0}
+.resource-unit:HOVER{background:rgba(0,120,240,0.1)}
+.resource-date{color:#808080;vertical-align:middle;font-size:.8em}
+.table-text{color:#808080;font-size:.8em}
+.resource-author{font-size:.8em;vertical-align:middle}
+.resource-expln{color:#323232;padding-top:5px;font-size:.9em}
+iframe{border:thin solid #c8c8c8}

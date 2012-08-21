@@ -1,0 +1,5 @@
+.setting-unit{padding:20px}
+.setting-title{font-weight:bold;color:#000}
+.setting-content{padding:10px;font-size:.94em}
+#select-list{display:none}
+select{padding:2px 7px;font-weight:bold;cursor:pointer}
