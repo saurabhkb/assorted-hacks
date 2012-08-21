@@ -1,0 +1,83 @@
+extends layout
+block styles
+	link(rel='stylesheet', href='/stylesheets/jquery-ui-1.8.21.custom.css')
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#signup-btn").click(
+					function(e){
+					}
+				);	
+			}
+		);
+block body
+	body.indexpage
+		//
+			.ui-state-error.ui-corner-all(style="padding: 0 0.7em;")
+				p
+					span.ui-icon.ui-icon-alert(style="margin-right: 0.3em; float: left")
+					|Javascript is disabled on your browser!
+		#titlebar
+			div#site-title
+				a(href="") #{title}
+			
+			div#signin.dropdown
+				a(href="")#signinlink Sign In
+			div.bubble
+				form(action="/signin", method="post")
+					table#signintable
+						tr
+							th#signintable-title Sign In
+						tr
+							td
+								.fieldname email id
+						tr
+							td
+								input(type="text", name="user[emailid]").textinput
+						tr
+							td(style="padding-top: 10px;")
+								.fieldname password
+						tr
+							td
+								input(type="password", name="user[password]").textinput
+						tr
+							td(style="padding-top: 10px;")
+								input(type="submit", value="Sign In", style="padding: 5px 10px;").button
+				div.bubble-arrow-border
+				div.bubble-arrow
+	div#signupbox
+		form(action="/signup", method="post")
+			table#signuptable
+				tr
+					th Sign Up
+				tr
+					td
+						.fieldname first name
+					td
+						input(type="text", name="user[fn]", id="fn").req.textinput
+				tr
+					td
+						.fieldname last name
+					td
+						input(type="text", name="user[ln]", id="ln").req.textinput
+				tr
+					td
+						.fieldname email id
+					td
+						input(type="text", name="user[emid]", id="emid").req.textinput
+				tr
+					td
+						.fieldname password
+					td
+						input(type="password", name="user[pwd]", id="pwd").req.textinput
+				tr
+					td
+						input(type="submit", value="Sign Up", style="padding: 5px 10px;")#signup-btn.button
+	#quote-box
+		//
+			#quote Madam, I may be drunk, but tomorrow I shall be sober and you'll still be ugly...
+		#quote Please speak clearly, I am not fluent in idiot...
+		//
+			#origin -Winston Churchill
+		#origin -Anon

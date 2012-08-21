@@ -1,0 +1,46 @@
+extends userlayout
+block styles
+	link(rel="stylesheet", href="/stylesheets/profile.css")
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#edit-opt a").click(
+					function(e){
+						$("#edit-box").dialog("open");
+						$("#edit-box").dialog("option", "title", "Edit Profile");
+						$("#edit-box").dialog("option", "width", 400);
+						e.preventDefault();
+						return false;
+					}
+				);
+			}
+		);
+block course_header
+block maincontent
+	#profile-img(style="width: 100%;")
+		img(src="/images/user/#{me.img_id}", style="width: inherit; height: inherit")
+	#profile-title
+		#profile-name
+			a(href="#") #{me.first_name} #{me.last_name}
+	#edit-opt
+		a(href="#") edit
+	#edit-box.modal-window
+		.modal-content
+			form(action="/user/profile/edit", method="post", enctype="multipart/form-data")
+				.edit-unit
+					.fieldname First Name
+					input(type="text", name="fn", value="#{me.first_name}", autocomplete="off").textinput
+				.edit-unit
+					.fieldname Last Name
+					input(type="text", name="ln", value="#{me.last_name}", autocomplete="off").textinput
+				.edit-unit
+					.fieldname Email Id
+					input(type="text", name="emid", value="#{me.email_id}").textinput
+				.edit-unit
+					.fieldname Profile Image
+					input(type="file", name="img").textinput
+				.edit-unit
+					input(type="submit", value="save changes", style="padding: 5px 10px")#save-changes.green-btn
+				.edit-unit
+					input(type="submit", value="cancel")#save-changes.cancel.button

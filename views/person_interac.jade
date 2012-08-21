@@ -1,0 +1,153 @@
+extends userlayout
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$(".assignment").click(
+					function(e){
+						e.preventDefault();
+						var id = $(this).parents(".assgn-unit").attr("id");
+						$("#assgn-details").dialog("open");
+						$("#assgn-details").dialog("option", "title", $(this).find(".assgn-title").text());
+						$("#assgn-details").dialog("option", "width", 500);
+						$("#assgn-details").dialog("option", "height", 300);
+						$.post("/courses/#{loc.course_id}/assignments/details/", {id: id}, function(json){
+							var obj = JSON.parse(json);
+							$("#loading").fadeOut(200);
+							$("#det-assgn-content").text(obj.assignment_content);
+						});
+					}
+				);
+				var socket = io.connect("http://localhost:3000/assignment_comments");
+				$(".comments a").click(
+					function(e){
+						var title = $(this).parents("table").find(".assgn-title").text();
+						e.preventDefault();
+						$(".load-comments").show();
+						$("#comments-window").dialog("open");
+						$("#comments-window").dialog("option", "width", 600);
+						$("#comments-window").dialog("option", "title", "Comment for " + title);
+						$("#comments-window").dialog("option", "height", 500);
+						$("#comments-window").dialog({close: function(e, ui){$("#comment-list").html("");}});
+						var uid = "#{user.user_id}";
+						var aid = $(this).parents(".assgn-unit").attr("id");
+						$("#comments-window #user_id").val(uid);
+						$("#comments-window #assgn_id").val(aid);
+						$.post("/courses/#{loc.course_id}/assignments/" + aid + "/comments/", {user_id: uid}, function(json){
+							$(".load-comments").hide();
+							var com = JSON.parse(json);
+							for(var i = 0; i < com.length; i++)
+								$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-date'>" + new Date(com[i].time * 1000).toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+						});
+						return false;
+					}
+				);
+				$("#add-comment-btn").click(
+					function(e){
+						e.preventDefault();
+						var cmment = $("#comments-window #comment-box").val().trim();
+						var target = $("#comments-window #user_id").val();
+						var aid = $("#comments-window #assgn_id").val();
+						if(cmment){
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-date'>" + new Date().toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							socket.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: aid}));
+						}
+						$("#comment-box").val("");
+						$("#comment-box").focus();
+						return false;
+					}
+				);
+				for(var i = 0; i < $(".assgn-desc").length; i++)
+				{
+					if($(".assgn-desc").eq(i).text().length > 300)
+						$(".assgn-desc").eq(i).text($(".assgn-desc").eq(i).text().slice(0, 300) + " ...");
+				}
+			}
+		);
+block styles
+	link(href='/stylesheets/people.css', rel='stylesheet')
+	link(href='/stylesheets/comment.css', rel='stylesheet')
+block maincontent
+	#title-person.maincol-content
+		table(style="border-collapse: separate; border-spacing: 20px;")
+			tr
+				td
+					a(href="/user/#{user.user_id}/")
+						img(src="/images/user/#{user.img_id}", style="width: 60px; border-radius: 3px;")
+				td
+					a(href="/user/#{user.user_id}/")
+						#{user.first_name} #{user.last_name}
+	#contrib.maincol-content
+		each c in contrib
+			.assgn-unit(id="#{c.id}")
+				table.parent-table
+					tr
+						td(style="width: 33em;")
+							.assignment
+								table(style="width: 100%;")
+									tr
+										td
+											.assgn-title
+												#{c.assignment_title}
+									tr
+										td
+											span.date-title start date:
+											span.start-date
+												script
+													document.write(new Date(1000 * #{c.start_date}).toString("d MMM, yyyy"));
+											span(style="margin-left: 20px;").date-title end date:
+											span.end-date
+												script
+													document.write(new Date(1000 * #{c.end_date}).toString("d MMM, yyyy"));
+									tr
+										td		
+											.assgn-desc
+												#{c.assignment_content}
+						td(style="width: 7em; text-align: center;")
+							if c.filename != null
+								if c.submission_date > c.end_date
+									span.sub-date
+										script
+											document.write("<span style='color: red;'>" + new Date(1000 * #{c.submission_date}).toString("d MMM, yyyy") + "</span>");
+								else
+									span.sub-date
+										script
+											document.write("<span style='color: green;'>" + new Date(1000 * #{c.submission_date}).toString("d MMM, yyyy") + "</span>");
+							else
+								span.sub-date
+									|--
+						td(style="width: 20em;")
+							.submission
+								if c.filename != null
+									.yes-sub
+										a(href="/submissions/#{c.submission_id}", target="_window") #{c.filename}
+								else
+									.no-sub No Submission
+						td(style="width: 5em; text-align: center")
+							.comments
+								a(href="#")
+									img(src="/images/chat.png", style="width: 30px;", title="comments")
+						td(style="width: 5em; text-align: center;")
+							.grade
+								if c.marks == null
+									-c.marks = 0
+								span.marks #{c.marks}
+								span.slash /
+								span.outof #{c.total_marks}
+
+	#assgn-details.modal-window
+		#loading
+			img(src="/images/loader.gif")
+		.modal-content
+			#det-assgn-content(style="color: black; font-size: 0.9em;")
+
+	#comments-window.modal-window
+		.modal-content
+			#comment-list
+			#add-comment
+				form
+					input(type="hidden", id="user_id", name="user_id", value="#{me.user_id}")
+					input(type="hidden", id="user_id", name="assgn_id")#assgn_id
+					textarea#comment-box.textinput
+					br
+					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button

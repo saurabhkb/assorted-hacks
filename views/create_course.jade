@@ -1,0 +1,79 @@
+extends userlayout
+block styles
+	link(rel="stylesheet", href="/stylesheets/creat.css")
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#submit").click(
+					function(e){
+						if($(".req").val() == "" || $(".req").val().trim() == ""){
+							e.preventDefault();
+						}
+					}
+				);
+				$(".ques").click(
+					function(e){
+						e.preventDefault();
+						$(".modal-window").dialog("open");
+						$(".modal-window").dialog("option", "title", "Course Secret Key");
+					}
+				);
+				$("#get-course-key").click(function(e){e.preventDefault();});
+				$("#get-course-key").mouseup(
+					function(e){
+						e.preventDefault();
+						$.post("/course_key/", function(k){$("#key_space").text(k); $("#hid_key_space").val(k);});
+					}
+				);
+
+			}
+		);
+block course-navig-bar
+block maincontent
+	#maincol-content
+		#formdiv.maincol-content
+			#title-strip
+				#title-name Create a Course
+			form(action="/new_course/", method="post")
+				table(style="border-collapse: separate; border-spacing: 15px;")
+					tr
+						td
+							.fieldname Course Name
+						td
+							input(type="text", name="cname", autocomplete="off").req.textinput
+					tr
+						td
+							.fieldname Course Label
+						td
+							input(type="text", name="clab", autocomplete="off").req.textinput
+					tr
+						td
+							.fieldname Course Description
+						td
+							textarea(style="height: 5em; width: 300px", name="cdesc").textinput
+					tr
+						td
+							.fieldname Course Secret Key
+						td(style="display: inline-table; width: 8em")
+							#key_space(style="border: thin solid rgb(210, 210, 210);padding: 5px; color: blue") &nbsp
+							input(type="hidden", name="ckey")#hid_key_space
+						td(style="display: inline-table")
+							button#get-course-key.button get key
+						td(style="display: inline-table")
+							.ques(title="what is a course key?") ?
+					tr
+						td(style="padding-top: 10px;")
+							input(type="submit", value="create", style="vertical-align: baseline")#submit.button
+						td(style="padding-top: 10px;")
+							a(href="/user/home", style="font-size: 13px; vertical-align: baseline;").button cancel
+			#notice(style="margin: 1em 0 0 1em")
+				.fieldname
+					li you are the instructor of this course
+				.fieldname
+					li you can change the settings at any time
+				.fieldname
+					li you can end the course at any time
+			.modal-window
+				.modal-content
+					.expln(style="font-size: 0.85em;") Only students who know this key can register for your course. Distribute this key amongst your students so that they can register.

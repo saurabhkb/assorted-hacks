@@ -1,0 +1,241 @@
+!!! 5
+html
+	head
+		title Teachfruit
+		link(rel="icon", type="image/png", href="/images/tf2.png")
+		script(src='/javascripts/jquery-1.7.2.min.js')
+		script(src='/javascripts/jquery-ui-1.8.21.custom.min.js')
+		script(src='/javascripts/userpage.js')
+		script(src='/javascripts/jquery.mCustomScrollbar.js')
+		script(src='/javascripts/date.js')
+		script(src='/javascripts/jquery.jscrollpane.min.js')
+		script(src='/javascripts/jquery.mousewheel.min.js')
+		script(src='/javascripts/timepicker.js')
+		script(src='/socket.io/socket.io.js')
+		block scripts
+		link(rel='stylesheet', href='/stylesheets/style.css')
+		link(rel='stylesheet', href='/stylesheets/reset.css')
+		link(rel='stylesheet', href='/stylesheets/userpage.css')
+		link(rel='stylesheet', href='/stylesheets/html-elem.css')
+		link(rel='stylesheet', href='/stylesheets/jquery.jscrollpane.css')
+		link(rel='stylesheet', href='/stylesheets/jquery.mCustomScrollbar.css')
+		link(rel='stylesheet', href='/stylesheets/jquery-ui-1.8.21.custom.css')
+		block styles
+		script
+			$(document).ready(
+				function(){
+					addNavigJs(io);
+					$("#join-course-a").click(function(e){e.preventDefault(); $(".join-course-div").toggle();});
+					$("#join-course-inp").focus(
+						function(){
+							if($(this).val() == "enter course key")
+								$(this).val("");
+						}
+					);
+					$("#join-course-inp").blur(
+						function(){
+							if($(this).val() == "" || $(this).val().trim() == ""){
+								$(this).val("enter course key");
+							}
+						}
+					);
+					$("#join-course-btn").click(
+						function(e){
+							e.preventDefault();
+							var txt = $("#join-course-inp");
+							if(txt.val() == "enter course key" || txt.val() == "" || txt.val().trim() == ""){
+								txt.val("");
+								txt.focus();
+							}
+							else{
+								var ckey = $("#join-course-inp").val();
+								$(".join-course-load").show();
+								$.post("/join_course/", {key: ckey}, function(reply){
+									$(".join-course-load").hide();
+									if(reply == "-1")
+										$("#join-course-result").text("you have already signed up for this course dumbass...")
+									else if(reply == "0")
+										$("#join-course-result").text("making up course keys are we?")
+									else{
+										var obj = JSON.parse(reply);
+										$("#join-course-result").html("<div class='potential-course'>you have signed up for : <br/><a href='/courses/" + obj.course_id + "/main/'>" + obj.course_name + "</a></div>");
+									}
+										
+								});
+							}
+						}
+					);
+
+					$(".selected-course-navig-link").click(function(e){e.preventDefault();});
+
+				}
+			);
+	body
+		#header
+			#site-title-mini
+				a(href="") Teachfruit
+			#search-div
+				form(action="/search/", method="get")
+					input(type="text", name="q", size="40", autocomplete="off")#search-txtbox.textinput
+					button(style="padding: 3px 14px 0px 14px; margin-left: 3px;")#search-btn.button
+						img(src="/images/search1.png")
+			-var right = 10
+			#user-opt-box
+				.user-opt-box-unit(style="right: #{right + 60 + 110 + 80 + 80 + 10}px; top: 0px;")
+					-i = 0
+					each n in notif
+						if n.seen == 0
+							-i = i + 1
+					if i == 0
+						button#not-btn.button #{i}
+					else
+						button#not-btn.button.green-btn #{i}
+				.not-bubble(style="right: #{right + 60 + 110 + 80 + 80 + 10 - 25}px")
+					if notif.length == 0
+						#no-courses no notifications!
+					#notif-list
+						each notification in notif
+							.notification(id="#{notification.id}")
+								if notification.type == "STREAM"
+									table
+										tr
+											td
+												a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													.img
+														img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+											td
+												a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													.notif-content #{notification.first_name} #{notification.last_name} posted in
+														span.notif-course #{notification.course_name}
+														div.notif-event-date	
+															script
+																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMMM, yyyy  hh:mm"))
+								else if notification.type == "ASSIGNMENT"
+									table
+										tr
+											td
+												a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													.img
+														img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+											td
+												a(href="/courses/#{notification.course_id}/assignments##{notification.reference}")
+													.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
+														span.notif-course #{notification.course_name}
+														div.notif-event-date
+															script
+																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMM, yyyy  hh:mm"))
+								else if notification.type == "RESOURCE"
+									table
+										tr
+											td
+												a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													.img
+														img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+											td
+												a(href="/courses/#{notification.course_id}/resources##{notification.reference}")
+													.notif-content #{notification.first_name} #{notification.last_name} added a resource in
+														span.notif-course #{notification.course_name}
+														div.notif-event-date
+															script
+																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMM, yyyy  hh:mm")) 
+
+
+					.not-bubble-arrow-border
+					.not-bubble-arrow
+				.user-opt-box-unit(style="right: #{right + 25 + 110 + 80 + 60}px")
+					a(href="/user/home/") home
+				.user-opt-box-unit(style="right: #{right + 40 + 110 + 80}px")
+					a(href="#", style="border-bottom: thin dotted;")#me me
+				.me-bubble(style="right: #{right + 40 + 110 + 50}px; width: 200px")
+					.bubble-course-elem
+						.bubble-course-elem-title
+							a(href="/user/profile") my profile
+					.bubble-course-elem
+						.bubble-course-elem-title
+							a(href="/user/profile") my history
+							span(style="color: white; font-size: 0.8em; margin-left: 4px") (coming soon)
+					.bubble-course-elem
+						.bubble-course-elem-title
+							a(href="/user/profile") my cabinet
+							span(style="color: white; font-size: 0.8em; margin-left: 4px") (coming soon)
+					.action-bubble-arrow-border
+					.action-bubble-arrow
+				.user-opt-box-unit(style="right: #{right + 50 + 110}px")
+					a(href="/user/home/", style="border-bottom: thin dotted;")#actions actions
+				.action-bubble(style="right: #{right + 50 + 110 - 25}px")
+					.bubble-course-elem
+						.bubble-course-elem-title
+							a(href="/create_course") Create a Course
+					.bubble-course-elem
+						.bubble-course-elem-title
+							a(href="#")#join-course-a Join a Course
+						.join-course-div
+							form(action="")
+								input(type="text", value="enter course key", autocomplete="off")#join-course-inp.textinput
+								button(style="padding: 3px 4px 4px 4px; margin-left: 2px;")#join-course-btn.green-btn go
+								.join-course-load(style="position: absolute; right: 57px; top: 69px; display: none;")
+									img(src="/images/loader.gif", style="width: 20px;")
+							.bubble-course-elem#join-course-result(style="color: white;")
+					.action-bubble-arrow-border
+					.action-bubble-arrow
+				#course-list.user-opt-box-unit(style="right: #{right + 60}px")
+					a(href="#", style="border-bottom: thin dotted;") my courses
+				.bubble
+					-if(data.length == 0)
+						#no-courses no courses!
+					each course in data
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/courses/#{course.course_id}/main") #{course.course_name}
+								span.bubble-course-id #{course.course_label}
+					.bubble-arrow-border
+					.bubble-arrow
+				.user-opt-box-unit(style="padding: 0px 10px 0px 10px; right: #{right - 2}px")
+					a(href="/logout") log out
+			
+		#wrapper
+			block course_header
+				#course-header
+					block course-navig-bar
+						#masthead(style="background-image: url(/images/masthead/#{loc.masthead_img})")
+						#course-title
+							span#course-name
+								a(href="#")
+									#{loc.course_name}
+								span(style="font-size: 0.8em; color: rgb(170, 170, 170); margin-left: 10px") #{loc.course_label}
+						#course-navig-bar
+							table
+								tr
+									td
+										if portal == "main" || portal == ""
+											a(href="/courses/#{loc.course_id}/main").selected-course-navig-link Stream
+										else
+											a(href="/courses/#{loc.course_id}/main") Stream
+									td
+										if portal == "assignments"
+											a(href="/courses/#{loc.course_id}/assignments").selected-course-navig-link Assignments
+										else
+											a(href="/courses/#{loc.course_id}/assignments") Assignments
+									td
+										if portal == "calendar"
+											a(href="/courses/#{loc.course_id}/calendar").selected-course-navig-link Calendar
+										else
+											a(href="/courses/#{loc.course_id}/calendar") Calendar
+									td
+										if portal == "people"
+											a(href="/courses/#{loc.course_id}/people").selected-course-navig-link People
+										else
+											a(href="/courses/#{loc.course_id}/people") People
+									td
+										if portal == "resources"
+											a(href="/courses/#{loc.course_id}/resources").selected-course-navig-link Resources
+										else
+											a(href="/courses/#{loc.course_id}/resources") Resources
+									if role == 1
+										td
+											if portal == "admin"
+												a(href="/courses/#{loc.course_id}/admin").selected-course-navig-link Admin
+											else
+												a(href="/courses/#{loc.course_id}/admin") Admin
+			#maincontent
+				block maincontent

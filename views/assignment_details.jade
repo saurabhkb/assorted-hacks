@@ -1,0 +1,119 @@
+extends userlayout
+block styles
+	link(href='/stylesheets/assgn.css', rel='stylesheet')
+	link(href='/stylesheets/comment.css', rel='stylesheet')
+block scripts
+	script
+		$(document).ready(
+			function(){
+				var socket = io.connect("http://localhost:3000/assignment_comments");
+				$(".comments a").click(
+						function(e){
+							e.preventDefault();
+							var name = $(this).parents("table").find(".user-name").text();
+							$(".load-comments").show();
+							$("#comments-window").dialog("open");
+							$("#comments-window").dialog("option", "width", 600);
+							$("#comments-window").dialog("option", "title", "Comment for " + name);
+							$("#comments-window").dialog("option", "height", 500);
+							$("#comments-window").dialog({close: function(e, ui){$("#comment-list").html("");}});
+							var uid = $(this).parents("td").children(".comment_user_id").val();
+							$("#comments-window #user_id").val(uid);
+							$.post("/courses/#{loc.course_id}/assignments/#{assg.id}/comments/", {user_id: uid}, function(json){
+								$(".load-comments").hide();
+								var com = JSON.parse(json);
+								for(var i = 0; i < com.length; i++)
+									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+							});
+							return false;
+						}
+				);
+				$("#add-comment-btn").click(
+					function(e){
+						e.preventDefault();
+						var cmment = $("#comments-window #comment-box").val().trim();
+						var target = $(this).siblings("#user_id").val();
+						if(cmment){
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							socket.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: #{assg.id}}));
+						}
+						$("#comment-box").val("");
+						$("#comment-box").focus();
+						return false;
+					}
+				);
+			}
+		);
+block maincontent
+	#title-assgnmnt.maincol-content
+		#title-assgnmnt-name #{assg.assignment_title}
+		#title-assgnmnt-expln #{assg.assignment_content}
+		#title-dates
+			table
+				tr
+					td
+						span.date-title start date:
+						span.start-date
+							script
+								document.write(new Date(#{assg.start_date} * 1000).toString("d MMM, yyyy"))
+					td(style="padding-left: 20px;")
+						span.date-title end date:
+						span.end-date
+							script
+								document.write(new Date(#{assg.end_date} * 1000).toString("d MMM, yyyy"))
+		
+	#user-list.maincol-content
+		if assgn_data.length == 0
+			div(style="color: gray; text-align: center;") No users
+		each u in assgn_data
+			.user-unit
+				table
+					tr
+						td
+							.user-img
+								a(href="/user/#{u.user_id}/")
+									img(src="/images/user/#{u.img_id}")
+						td
+							.user-name
+								a(href="/user/#{u.user_id}/") #{u.first_name} #{u.last_name}
+						td
+							.sub-date
+								if u.submission_date != null
+									if assg.end_date > u.submission_date
+										script
+											document.write("<span style='color: green;'>" + new Date(1000 * #{u.submission_date}).toString("d MMM, yyyy") + "</span>");
+									else
+										script
+											document.write("<span style='color: red'>" + new Date(1000 * #{u.submission_date}).toString("d MMM, yyyy") + "</span>");
+								else
+									.no-sub-date ---
+						td
+							.user-sub
+								if u.filename == null
+									.no-sub no submission
+								else if u.filename != null
+									.yes-sub
+										a(href="/submissions/#{u.submission_id}", target="_window") #{u.filename}
+						td
+							input(type="hidden", value="#{u.user_id}", class="comment_user_id")
+							.comments
+								a(href="")
+									img(src="/images/chat.png", style="width: 25px;", title="comments")
+						td
+							.grade
+								if u.marks == null
+									-u.marks = 0
+								span.marks #{u.marks}
+								span.slash /
+								span.outof #{assg.total_marks}
+	#comments-window.modal-window
+		.modal-content
+			#comment-list
+				.load-comments
+					img(src="/images/loader.gif")
+			#add-comment
+				form
+					input(type="hidden", id="user_id", name="user_id")
+					textarea#comment-box.textinput
+					br
+					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button

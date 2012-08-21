@@ -1,0 +1,63 @@
+extends userlayout
+block styles
+	link(href="/stylesheets/search.css", rel="Stylesheet")
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#tabs").tabs();
+			}
+		);
+block course_header
+block maincontent
+	#search-results-wrap
+		#query-title
+			span#intro search results for:
+			span#query #{query}
+		#search-result-filter
+			#tabs
+				ul
+					li(style="border-style: none;")
+						a(href="#courses")
+							.text Courses
+					li(style="border-style: none;")
+						a(href="#users")
+							.text Users
+				#courses
+					if qcourse.length == 0
+						.no-result
+							img(src="/images/close3.png", style="margin-bottom:4px;")
+							br
+							|No course results found
+					each c in qcourse
+						.course-search-result
+							a(href="/courses/#{c.course_id}/main")
+								table(style="border-collapse: separate; border-spacing: 20px 10px;")
+									tr
+										td
+											.sr-masthead
+												img(src="/images/masthead/#{c.masthead_img}", style="width: 7em; border-radius: 4px")
+										td
+											.sr-title
+												#{c.course_name}
+											.sr-desc
+												#{c.course_desc}
+
+				#users
+					if quser.length == 0
+						.no-result
+							img(src="/images/close3.png", style="margin-bottom:4px;")
+							br
+							|No user results found
+					each u in quser
+						.user-search-result
+							a(href="/user/#{u.user_id}/")
+								table(style="border-collapse: separate; border-spacing: 20px 10px;")
+									tr
+										td
+											.sr-masthead
+												img(src="/images/user/#{u.img_id}", style="width: 7em; border-radius: 4px")
+										td
+											.sr-title
+												#{u.first_name} #{u.last_name}
+

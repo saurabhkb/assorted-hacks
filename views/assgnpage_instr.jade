@@ -1,0 +1,357 @@
+extends userlayout
+block scripts
+	script
+		function addAssignment(from, msg, id){
+			obj = JSON.parse(msg);
+			$("#load-assgn").hide();
+			$("#assgn-list").prepend("<div class='assgnmnt-wrap'><a href='' class='assgn-link'><div id='" + id + "' class='assgnmnt'><div class='assgnmnt-title'>" + obj.assgn_title + "</div><div class='assgnmnt-dates'><table><tr><td>start date: </td><td>" + obj.sdate + "</td><td style='padding-left: 20px;'>due date: </td><td>" + obj.edate + "</td></tr></table></div><div class='assgnmnt-content'>" + obj.assgn_content + "</div></div></a></div>");
+		}
+		$("document").ready(
+			function(){
+				var socket = io.connect("http://localhost:3000/assignments");
+				var comm_sock = io.connect("http://localhost:3000/assignment_comments");
+				socket.on('assignment', addAssignment);
+				$("#assgn-modal #start-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
+				$("#assgn-modal #end-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
+				$("#edit-assgn-modal #start-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
+				$("#edit-assgn-modal #end-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
+				$("#radio").buttonset();
+				$("#create-assgn-btn").click(
+					function(){
+						$("#assgn-modal").dialog("open");
+						$("#assgn-modal").dialog("option", "title", "Create Assignment");
+						$("#assgn-modal").dialog("option", "width", 500);
+					}
+				);
+				$(".edit-assgn-btn").click(
+					function(){
+						var id = $(this).parents(".assgnmnt-wrap").find(".assgnmnt").attr("id");
+						$("#edit-assgn-modal").dialog("open");
+						$("#edit-assgn-modal").dialog("option", "title", "Edit Assignment");
+						$("#edit-assgn-modal").dialog("option", "width", 500);
+						$.post("/courses/#{loc.course_id}/assignments/details/", {id: id}, function(json){
+							var obj = JSON.parse(json);
+							$("#loading").fadeOut(200);
+							$("#edit-assgn-modal #assgn-title").val(obj.assignment_title);
+							$("#edit-assgn-modal #assgn-content").val(obj.assignment_content);
+							$("#edit-assgn-modal #start-date").val(new Date(1000 * obj.start_date).toString("d MMMM, yyyy hh:mm"));
+							$("#edit-assgn-modal #end-date").val(new Date(1000 * obj.end_date).toString("d MMMM, yyyy hh:mm"));
+						});
+
+					}
+				);
+				$(".kill-event").click(
+					function(){
+						var id = $(this).parents(".assgnmnt-wrap").find(".assgnmnt").attr("id");
+						var title = $(this).parents(".assgnmnt-wrap").find(".assgnmnt-title").text();
+						$("#kill-assgn-modal").dialog("open");
+						$("#kill-assgn-modal").dialog("option", "title", title);
+						$("#kill-assgn-modal").dialog("option", "width", 300);
+						$("#kill-assgn-modal").dialog("option", "height", 150);
+						$("#kill-assgn-modal").dialog("option", "draggable", false);
+						$("#kill-assgn-modal").dialog("option", "resizable", false);
+					}
+				);
+
+				for(var i = 0; i < $(".assgnmnt-content").length; i++)
+				{
+					if($(".assgnmnt-content").eq(i).text().length > 100)
+						$(".assgnmnt-content").eq(i).text($(".assgnmnt-content").eq(i).text().slice(0, 100) + " ...");
+				}
+				$("body").on(
+					"click",
+					".assgn-link", 
+					function(e){
+						e.preventDefault();
+						var id = $(this).children(".assgnmnt").attr("id");
+						$("#assgn-details").dialog("open");
+						$("#assgn-details").dialog("option", "title", $(this).find(".assgnmnt-title").text());
+						$("#assgn-details").dialog("option", "width", 500);
+						$("#assgn-details").dialog("option", "height", 300);
+						$.post("/courses/#{loc.course_id}/assignments/details/", {id: id}, function(json){
+							var obj = JSON.parse(json);
+							$("#loading").fadeOut(200);
+							$("#det-assgn-content").text(obj.assignment_content);
+						});
+						return false;
+					}
+				);
+				$("#submit-assgn-btn").click(
+					function(e){
+						e.preventDefault();
+						if($(".forminput").val().trim() == "")
+							return false;
+						else
+						{
+							$(".modal-window").dialog("close");
+							$("#no-assgn").hide();
+							$("#load-assgn").show();
+							socket.emit("assignment", JSON.stringify({assgn_title: $("#assgn-title").val(), assgn_content: $("#assgn-content").val(), sdate: $("#start-date").val(), edate: $("#end-date").val(), course_id: #{loc.course_id}}));
+							return false;
+						}
+					}
+				);
+				$(".student-submit-assgn").click(
+					function(e){
+						e.preventDefault();
+						var title = $(this).parents(".assgnmnt-wrap").find(".assgnmnt-title").text();
+						var id = $(this).parents(".assgnmnt-wrap").find(".assgnmnt").attr("id");
+						$("#submit-assgn-title").text(title);
+						$("#submit-assgn-window").dialog("open");
+						$("#submit-assgn-window").dialog("option", "title", title);
+						$("#submit-assgn-window").dialog("option", "width", 600);
+						$("#submit-assgn-window").dialog("option", "height", 300);
+						$("#assignment_id").val(id);
+					}
+				);
+				$("#final-submit").click(
+					function(e){alert($("#submitted-file").val());
+						if($("#submitted-file").val() == ""){
+							e.preventDefault();
+							return false;
+						}
+					}
+				);
+				$(".comments a").click(
+					function(e){
+						e.preventDefault();
+						$(".load-comments").show();
+						var aid = $(this).parents(".comments").attr("id");
+						$("#comments-window").dialog("open");
+						$("#comments-window").dialog("option", "width", 600);
+						$("#comments-window").dialog("option", "title", "Comment");
+						$("#comments-window").dialog("option", "height", 500);
+						$("#comments-window").dialog({close: function(e, ui){$("#comment-list").html("");}});
+						var uid = $(this).parents("td").children(".comment_user_id").val();
+						$("#comments-window #assgn_id").val(aid);
+						$.post("/courses/#{loc.course_id}/assignments/" + aid + "/comments/", {user_id: #{me.user_id}}, function(json){
+							$(".load-comments").hide();
+							var com = JSON.parse(json);
+							if(com){
+								for(var i = 0; i < com.length; i++)
+									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-date'>" + new Date(com[i].time * 1000).toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+							}
+						});
+						return false;
+					}
+				);
+				$("#add-comment-btn").click(
+					function(e){
+						e.preventDefault();
+						var cmment = $("#comments-window #comment-box").val().trim();
+						var target = $(this).siblings("#user_id").val();
+						var aid = $("#comments-window #assgn_id").val();
+						if(cmment){
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-date'>" + new Date().toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							comm_sock.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: aid}));
+						}
+						$("#comment-box").val("");
+						$("#comment-box").focus();
+						return false;
+					}
+				);
+			}
+		);
+block styles
+	link(href='/stylesheets/assgn.css', rel='Stylesheet')
+	link(href='/stylesheets/comment.css', rel='Stylesheet')
+block maincontent
+	if(role == 1)
+		#create-assgn
+			button(style="padding: 5px 10px")#create-assgn-btn.green-btn Create an Assignment
+		#assgn-modal.modal-window
+			.modal-content
+				form(action="")
+					table
+						tr
+							td
+								.fieldname Assignment Name
+							td
+								input(type="text")#assgn-title.forminput.textinput
+						tr
+							td
+								.fieldname Assignment Description
+							td
+								textarea(rows="7")#assgn-content.forminput.textinput
+						tr
+							td
+								.fieldname Start Date
+							td
+								input(type="text")#start-date.forminput.textinput
+						tr
+							td
+								.fieldname End Date
+							td
+								input(type="text")#end-date.forminput.textinput
+						//
+							tr
+								td
+									.fieldname(style="margin-bottom: 0") Expected
+								td
+									#radio
+										input(type="radio", name="upload", id="yes")
+										label(for="yes")
+											|Submission expected
+										input(type="radio", name="upload", id="no")
+										label(for="no")
+											|No submission expected
+						tr
+							td
+								input(type="submit", value="create")#submit-assgn-btn.button
+							td
+								button.cancel.button cancel
+		#edit-assgn-modal.modal-window
+			.modal-content
+				form(action="", method="post")
+					table
+						tr
+							td
+								.fieldname Assignment Name
+							td
+								input(type="text")#assgn-title.forminput.textinput
+						tr
+							td
+								.fieldname Assignment Description
+							td
+								textarea(rows="7")#assgn-content.forminput.textinput
+						tr
+							td
+								.fieldname Start Date
+							td
+								input(type="text")#start-date.forminput.textinput
+						tr
+							td
+								.fieldname End Date
+							td
+								input(type="text")#end-date.forminput.textinput
+						//
+							tr
+								td
+									.fieldname(style="margin-bottom: 0") Expected
+								td
+									#radio
+										input(type="radio", name="upload", id="yes")
+										label(for="yes")
+											|Submission expected
+										input(type="radio", name="upload", id="no")
+										label(for="no")
+											|No submission expected
+						tr
+							td(style="padding-top: 10px;")
+								input(type="submit", value="save")#submit-assgn-btn.button
+								button.cancel.button(style="margin-left: 10px;") cancel
+
+
+	#assgn-list.maincol-content
+		if assgns.length == 0
+			div(style="margin: 0px auto; color: rgb(100, 100, 100); width: 10em; padding: 40px; text-align: center;")#no-assgn no assignments
+		#load-assgn
+			img(src="/images/loader.gif")
+		each assg in assgns
+			.assgnmnt-wrap
+				table(style="width: 100%")
+					tr
+						if role == 0
+							td(style="width: 7em; text-align: center")
+								if assg.filename == null
+									img(src="/images/pending.jpg", title="pending")
+								else if assg.submission_date < assg.end_date
+									img(src="/images/greentick.png", title="submitted on time")
+								else if assg.submission_date > assg.end_date
+									img(src="/images/redtick.jpg", title="submitted late")
+						td(style="width: 25em;")
+							a(href="").assgn-link
+								.assgnmnt(id="#{assg.id}")
+									.assgnmnt-title #{assg.assignment_title}
+									.assgnmnt-dates
+										table
+											tr
+												td(style="font-size: 0.8em;") start date:
+												td
+													.start-date
+														script
+															document.write(new Date(1000 * #{assg.start_date}).toString("d MMM, yyyy"));
+												td(style="padding-left: 20px; font-size: 0.8em;") due date:
+												td
+													.end-date
+														script
+															document.write(new Date(1000 * #{assg.end_date}).toString("d MMM, yyyy"));
+									.assgnmnt-content #{assg.assignment_content}
+						if role == 0
+							td(style="width: 7em; text-align: center")
+								if assg.submission_date != null
+									span.sub-date
+										script
+											document.write(new Date(1000 * #{assg.submission_date}).toString("d MMM, yyyy"));
+								else
+									span(style="color: gray;") ---
+									
+							td(style="width: 20em; text-align: center")
+									.assgn-opt
+										if assg.filename == null
+											a(href="").student-submit-assgn submit assignment
+											input(type="hidden", value="#{assg.id}", id="assg_id")
+										else
+											a(href="/submissions/#{assg.submission_id}", target="_window") #{assg.filename}
+									td
+										.comments(id="#{assg.id}")
+											a(href="")
+												img(src="/images/chat.png", style="width: 30px", title="comments")
+									td
+										.grade
+											if assg.marks == null
+												-assg.marks = 0
+											span.marks #{assg.marks}
+											span.slash /
+											span.outof #{assg.total_marks}
+						else if role == 1
+							td(style="width: 6em;")
+								.assgn-opt#view-submissions
+									a(href="/courses/#{loc.course_id}/assignments/#{assg.id}/instr") view all student submissions
+						if role == 1
+							td(style="width: 4em; font-size: 0.9em; color: gray;")
+								.assgn-opt#edit-opt(style="border-left: thin solid")
+									a(href="#", style="margin: 0 10px;").edit-assgn-btn
+										img(src="/images/edit.png", style="width: 20px;")
+									a(href="#", style="margin: 0 10px;").kill-event
+										img(src="/images/close.png", style="width: 20px;")
+	#assgn-details.modal-window
+		#loading
+			img(src="/images/loader.gif")
+		.modal-content
+			#det-assgn-content(style="color: black; font-size: 0.9em;")
+	#submit-assgn-window.modal-window
+		.modal-content
+			form(action="/courses/#{loc.course_id}/assignments/assignment_submission", method="post", enctype="multipart/form-data")
+				table
+					tr
+						td
+							.fieldname Submission
+						td
+							input(type="file", name="submission")#submitted-file.textinput
+					tr
+						td(style="width: 13em;")
+							.fieldname Rename the file for submission(max size: 50 characters)
+						td
+							input(type="text", name="new_name").textinput
+				#warning Once the assignment has been submitted, it cannot be modified or removed
+				#warning Note: Internally, the file will be renamed
+				input(type="hidden", name="assignment_id")#assignment_id
+				input(type="submit", value="submit")#final-submit.button
+				input(type="submit", value="cancel", style="margin-left: 10px;").cancel.button
+	#comments-window.modal-window
+		.modal-content
+			#comment-list
+			#add-comment
+				form
+					input(type="hidden", id="user_id", name="user_id", value="#{me.user_id}")
+					input(type="hidden", id="user_id", name="assgn_id")#assgn_id
+					textarea#comment-box.textinput
+					br
+					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button
+	#kill-assgn-modal.modal-window
+		.modal-content
+			.doublecheck Are you sure you want to delete this assignment?
+			p
+			button.button#kill-yes yes
+			button(style="margin-left: 10px;").button.cancel no

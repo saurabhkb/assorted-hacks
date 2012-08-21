@@ -1,0 +1,131 @@
+extends userlayout
+block styles
+	link(href='/stylesheets/resource.css', rel='stylesheet')
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#upload-res").click(
+					function(){
+						$("#add-res-window").dialog("open");
+						$("#add-res-window").dialog("option", "width", 400);
+						$("#add-res-window").dialog("option", "title", "Add a Resource");
+						$("#add-res-window").dialog("option", "minHeight", 100);
+					}
+				);
+				$("#tabs").tabs();
+				$(".msg").css("color", "gray")
+				$(".msg").focus(
+					function(){
+						$(this).val("");
+						$(this).css("color", "black");
+					}
+				);
+				$(".msg").blur(
+					function(){
+						if($(this).val() == "")
+							$(this).css("color", "gray");
+					}
+				);
+				$("#submit-res").click(
+					function(e){
+						if(!$("#upload_file").val() && ($("#vid_embed").val() == "Link to the Video" || $("#vid_embed").val() == "")  && ($("#link_url").val() == "URL of Link" || $("#link_url").val() == ""))
+						{
+							e.preventDefault();
+							return false;
+						}
+					}
+				);
+			}
+		);
+block maincontent
+	if role == 1 || role == 0
+		#add-resource
+			button(style="padding: 5px 10px")#upload-res.green-btn Add a Resource
+	if role == 1 || role == 0
+		#add-res-window.modal-window
+			.modal-content
+				form(action="/courses/#{loc.course_id}/resources/file_upload", method="post", enctype="multipart/form-data")
+					#tabs
+						ul
+							li
+								a(href="#tabs-1") Upload a File
+							li
+								a(href="#tabs-2") Embed a Video
+							li
+								a(href="#tabs-3") Add a Link
+						#tabs-1
+							.modal-subtitle Upload a File
+							p
+								input(type="file", name="upload_file")#upload_file
+							p
+								textarea(name="upload_file_expln").textinput.msg explain the resource
+						#tabs-2
+							.modal-subtitle Embed a Video
+							p
+								input(type="text", value="Link to the Video", name="embed_video")#vid_embed.textinput.msg
+							p
+								textarea(name="embed_video_expln").textinput.msg explain the resource
+						#tabs-3
+							.modal-subtitle Add a Link
+							p
+								input(type="text", value="Name of Link", name="add_link")#link_name.textinput.msg
+							p
+								input(type="text", value="URL of Link", name="add_link_url")#link_url.textinput.msg 
+							p
+								textarea(name="add_link_expln").textinput.msg explain the resource
+					p
+						input(type="submit", value="done")#submit-res.button
+						input(type="submit", value="cancel", style="margin-left: 10px;").cancel.button
+	#resource-list.maincol-content
+		if resources.length == 0 && links.length == 0
+			div(style="color: rgb(100, 100, 100); width: 10em; margin: 0px auto; text-align: center;") no resources
+		each res in resources
+			.resource-unit
+				.resource-link(id="#{res.id}")
+					a(href="/files/#{res.filename}", target="_window") #{res.filename}
+				.resource-author
+					table
+						tr
+							td
+								.table-text(style="margin-right: 4px;") added by
+							td
+								a(href="/user/#{res.user_id}/")
+									img(src="/images/user/#{res.img_id}", style="width: 20px; vertical-align: middle")
+							td
+								a(href="/user/#{res.user_id}/") #{res.first_name} #{res.last_name}
+							td
+								.table-text(style="margin-left: 4px;") on
+							td
+								.resource-date
+									script
+										document.write(new Date(#{res.upload_date}).toString("d MMM, yyyy"));
+				.resource-expln
+					#{res.explanation}
+		each res in links
+			.resource-unit
+				.resource-link(id="#{res.id}")
+					if res.link_type == "HYPERLINK"
+						a(href="#{res.link_url}", target="_window") #{res.link_name}
+					else if res.link_type == "VIDEO_EMBED"
+						iframe(src="#{res.link_url}")
+				.resource-author
+					table
+						tr
+							td
+								.table-text(style="margin-right: 4px;") added by
+							td
+								a(href="/user/#{res.user_id}/")
+									img(src="/images/user/#{res.img_id}", style="width: 20px; vertical-align: middle")
+							td
+								a(href="/user/#{res.user_id}/") #{res.first_name} #{res.last_name}
+							td
+								.table-text(style="margin-left: 4px;") on
+							td
+								.resource-date
+									script
+										document.write(new Date(#{res.upload_date}).toString("d MMM, yyyy"));
+				.resource-expln
+					#{res.explanation}
+
+

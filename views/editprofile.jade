@@ -1,0 +1,63 @@
+extends userlayout
+block styles
+	link(rel="stylesheet", href="/stylesheets/profile.css")
+block maincontent
+	#maincontent
+		#profile-img
+			img(src="/images/tiger-regal.jpg", alt="profile")
+		#profile-details
+			form(action="", method="post")
+				table
+					tr
+						td
+							.title first name:
+						td
+							.data
+								input(type="text", value="saurabh").textinput
+					tr
+						td
+							.title last name:
+						td
+							.data
+								input(type="text", value="kumar").textinput
+					tr
+						td
+							.title email id:
+						td
+							.data
+								input(type="text", value="alksjdk@gmail.com").textinput
+					tr
+						td
+							.title password:
+						td
+							.data
+								input(type="text", value="*****").textinput
+					tr
+						td
+							.title about me:
+						td
+							.data
+								textarea(rows="5", cols="16").textinput
+					tr
+						td
+							.title expertise:
+						td
+							.data
+								input(type="text", value="").textinput
+					tr
+						td
+							.title interests:
+						td
+							.data
+								input(type="text", value="").textinput
+					tr
+						td
+							.title qualifications:
+						td
+							.data
+								input(type="text", value="").textinput
+					tr
+						td(style="padding-top: 10px;")
+							input(type="submit", value="save changes").button
+			form(action="/user/profile/", method="get")
+				input(type="submit", value="cancel").button
