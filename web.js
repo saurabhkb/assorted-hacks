@@ -20,7 +20,7 @@ app.use(stylus.middleware({
 });
 
 app.get('/', function(request, response) {
-  response.render("index.jade", {title: "Teachfruit");
+  response.render("index.jade", {title: "Teachfruit"});
   });
 
   var port = process.env.PORT || 5000;
