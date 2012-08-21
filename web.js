@@ -2,6 +2,7 @@ var express = require('express');
 var stylus = require("stylus");
 var nib = require("nib");
 var app = express.createServer(express.logger());
+MemoryStore = express.session.MemoryStore;
 var sessionStore = new MemoryStore();
 app.configure(function(){
 app.use(stylus.middleware({
