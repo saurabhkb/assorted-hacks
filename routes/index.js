@@ -303,17 +303,8 @@ exports.extraoptions = function(req, res){
 exports.searchpage = function(req, res){
 	var qu = req.query['q'];
 	var course_results = '';
-	//FIXME clean the query!!!
-	qu.replace(''', '');
-	qu.replace('=', '');
-	qu.replace('>', '');
-	qu.replace('<', '');
-	qu.replace('*', '');
-	qu.replace('.', '');
-	qu.replace('[', '');
-	qu.replace(']', '');
-	var cq = 'SELECT * FROM courses WHERE course_name REGEXP '[[:<:]]' + qu + '' LIMIT 0, 50';
-	var uq = 'SELECT * FROM "user" WHERE first_name REGEXP '[[:<:]]' + qu + '' OR last_name REGEXP '[[:<:]]' + qu + '' LIMIT 0, 50';
+	var cq = 'SELECT * FROM courses WHERE course_name REGEXP "[[:<:]]' + qu + '" LIMIT 0, 50';
+	var uq = 'SELECT * FROM "user" WHERE first_name REGEXP "[[:<:]]' + qu + '" OR last_name REGEXP "[[:<:]]' + qu + '" LIMIT 0, 50';
 	client.query(cq, function(err, rows, fields){
 		if(err) throw err;
 		course_results = rows;
