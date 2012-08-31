@@ -38,48 +38,48 @@ exports.coursepage = function(req, res){
 	var course_det = req.coursedet;
 	var r = req.coursedet.role;
 	if(p == 'main' || p == ''){
-		client.query('SELECT * FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, rows, fields){
+		client.query('SELECT * FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
 		if(err) throw err;
-		res.render('mainpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, prev_posts: rows, role: r, notif: req.notifications});});
+		res.render('mainpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, prev_posts: result.rows, role: r, notif: req.notifications});});
 	}
 	else if(p == 'assignments'){
 		if(r == 0){
-			client.query('select * from assignments left join (select * from submissions where user_id = $1) as t on id = assignment_id where course_id = $2', [req.session.user.user_id, course_det.course_id], function(err, rows, fields){
+			client.query('select * from assignments left join (select * from submissions where user_id = $1) as t on id = assignment_id where course_id = $2', [req.session.user.user_id, course_det.course_id], function(err, result){
 				if(err) throw err;
-				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: rows, role: r, notif: req.notifications});
+				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 			});
 		}
 		else if(r == 1){
-			client.query('SELECT * FROM assignments  WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, rows, fields){
+			client.query('SELECT * FROM assignments  WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 				if(err) throw err;
-				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: rows, role: r, notif: req.notifications});
+				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 			});
 		}
 		else if(r == -1){
-			client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, rows, fields){
+			client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 				if(err) throw err;
-				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: rows, role: r, notif: req.notifications});
+				res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 			});
 		}
 	}
 	else if(p == 'calendar'){
-		client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, rows, fields){
+		client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 				if(err) throw err;
-				res.render('calendarpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications, assgns: rows});
+				res.render('calendarpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications, assgns: result.rows});
 		});
 	}
 	else if(p == 'people'){
-		client.query('SELECT * FROM user_course INNER JOIN "user" ON user_course.user_id = "user".user_id WHERE course_id = $1 ORDER BY role DESC', [course_det.course_id], function(err, rows, fields){
+		client.query('SELECT * FROM user_course INNER JOIN "user" ON user_course.user_id = "user".user_id WHERE course_id = $1 ORDER BY role DESC', [course_det.course_id], function(err, result){
 			if(err) throw err;
-			res.render('people_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, people: rows, notif: req.notifications});
+			res.render('people_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, people: result.rows, notif: req.notifications});
 		});
 	}
 	else if(p == 'resources'){
-		client.query('SELECT * FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_rows, fields){
+		client.query('SELECT * FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_result){
 			if(err) throw err;
-			client.query('SELECT * FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_rows, fields){
+			client.query('SELECT * FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
 				if(err) throw err;
-			res.render('resource_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_rows, links: link_rows, notif: req.notifications});
+			res.render('resource_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_result.rows, links: link_result.rows, notif: req.notifications});
 			});
 		});
 	}
@@ -100,9 +100,9 @@ exports.addcourse = function(req, res){
 	if(!name || !clab || !ckey || !name.trim() || !clab.trim() || !ckey.trim())
 		res.redirect('/create_course');
 	else{
-		client.query('INSERT INTO courses (course_label, course_name, course_desc, course_key) VALUES ( $1, $2, $3, $4 )', [clab, name, desc, ckey], function(err, results){
+		client.query('INSERT INTO courses (course_label, course_name, course_desc, course_key) VALUES ( $1, $2, $3, $4 ) RETURNING course_id', [clab, name, desc, ckey], function(err, results){
 			if(err) throw err;
-			var id = results.insertId;
+			var id = results.rows[0].course_id;
 			client.query('INSERT INTO user_course (user_id, course_id, role) VALUES ($1, $2, 1)', [req.session.user.user_id, id], function(err, result){
 				if(err) throw err;
 				req.session.courses.push({course_id: id, course_name: name, course_label: clab, course_desc: desc, course_key: ckey, role: 1});
@@ -117,10 +117,13 @@ exports.userpage = function(req, res){
 		res.redirect('/user/profile');
 	var portal = req.params.portal;
 	portal = portal || '';
-	client.query('SELECT * FROM "user" WHERE user_id = $1', [user_id], function(err, rows, fields){
+	client.query('SELECT * FROM "user" WHERE user_id = $1', [user_id], function(err, result){
 		if(err) throw err;
-		var userdet = rows[0];
-		res.render('userpage', {me: req.session.user, user: userdet, data: req.session.courses, portal: portal, notif: req.notifications});
+		if(!result.rows[0]) res.render('page_not_found');
+		else{
+			var userdet = result.rows[0];
+			res.render('userpage', {me: req.session.user, user: userdet, data: req.session.courses, portal: portal, notif: req.notifications});
+		}
 	});
 }
 
@@ -131,12 +134,12 @@ exports.assignment_det = function(req, res){
 	if(req.coursedet.role != 1)
 		res.send('You are not the instructor of this course. You do not have sufficient privileges to view this page!');
 	else{
-		client.query('select first_name, last_name, T.user_id, img_id, submission_id, submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = 1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, rows, fields){
+		client.query('select first_name, last_name, T.user_id, img_id, submission_id, submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = 1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
 			if(err) throw err;
-			client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg, fields){
+			client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
 				if(err) throw err;
-				if(assg[0])
-					res.render('assignment_details', {me: req.session.user, data: req.session.courses, assgn_data: rows, loc: req.coursedet, notif: req.notifications, portal: 'assignments', role: 1, assg: assg[0]});
+				if(assg_res.rows[0])
+					res.render('assignment_details', {me: req.session.user, data: req.session.courses, assgn_data: result.rows, loc: req.coursedet, notif: req.notifications, portal: 'assignments', role: 1, assg: assg_res.rows[0]});
 			});
 		});
 	}
@@ -145,9 +148,9 @@ exports.comments = function(req, res){
 	var uid = req.body.user_id;
 	var aid = req.params.a_id;
 	if(req.session.user.user_id == uid || req.coursedet.role == 1){
-		client.query('SELECT * FROM a_commentsINNER JOIN "user" ON author_id = user_id WHERE assignment_source = $1 AND assignment_id = $2', [uid, aid], function(err, rows, fields){
+		client.query('SELECT * FROM a_commentsINNER JOIN "user" ON author_id = user_id WHERE assignment_source = $1 AND assignment_id = $2', [uid, aid], function(err, result){
 			if(err) throw err;
-			res.send(JSON.stringify(rows));
+			res.send(JSON.stringify(result.rows));
 		});
 	}
 	else res.send(null);
@@ -218,12 +221,12 @@ exports.extraoptions = function(req, res){
 	if(option == 'details' && portal == 'assignments')
 	{
 		var id = req.body.id;
-		client.query('SELECT * FROM assignments WHERE id = $1', [id], function(err, rows, fields){
+		client.query('SELECT * FROM assignments WHERE id = $1', [id], function(err, result){
 			if(err) throw err;
-			if(rows[0])
-				res.send(JSON.stringify(rows[0]));
+			if(result.rows[0])
+				res.send(JSON.stringify(result.rows[0]));
 			else
-				return;
+				res.send(0);
 		});
 		
 	}
@@ -248,25 +251,25 @@ exports.extraoptions = function(req, res){
 			var tmp_path = file.path;
 			var target_path = './public/files/' + file.name;
 			fs.rename(tmp_path, target_path, function(err){if(err) throw err;});
-			client.query('INSERT INTO resources (course_id, upload_date, filename, explanation, filetype, user_id) VALUES ($1, $2, $3, $4, $5, $6)', [req.session.current_course, new Date().getTime() / 1000, file.name, file_expln, file.type, req.session.user.user_id], function(err, result){
+			client.query('INSERT INTO resources (course_id, upload_date, filename, explanation, filetype, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id', [req.session.current_course, new Date().getTime() / 1000, file.name, file_expln, file.type, req.session.user.user_id], function(err, result){
 				if(err) throw err;
-				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.insertId);
+				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.rows[0].id);
 			});
 		}
 
 		if(vid){
 			//user wants to embedded a video
-			client.query('INSERT INTO resource_links (course_id, upload_date, link_name, explanation, link_url, user_id, link_type) VALUES ($1, $2, $3, $4, $5, $6, $7)', [req.session.current_course, new Date().getTime() / 1000, '_', vid_expln, vid, req.session.user.user_id, 'VIDEO_EMBED'], function(err, result){
+			client.query('INSERT INTO resource_links (course_id, upload_date, link_name, explanation, link_url, user_id, link_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING link_id', [req.session.current_course, new Date().getTime() / 1000, '_', vid_expln, vid, req.session.user.user_id, 'VIDEO_EMBED'], function(err, result){
 				if(err) throw err;
-				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.insertId);
+				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.rows[0].link_id);
 			});
 		}
 
 		if(link_url){
 			//user wants to add a link
-			client.query('INSERT INTO resource_links (course_id, upload_date, link_name, explanation, link_url, user_id, link_type) VALUES ($1, $2, $3, $4, $5, $6, $7)', [req.session.current_course, new Date().getTime() / 1000, link_name, link_expln, link_url, req.session.user.user_id, 'HYPERLINK'], function(err, result){
+			client.query('INSERT INTO resource_links (course_id, upload_date, link_name, explanation, link_url, user_id, link_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING link_id', [req.session.current_course, new Date().getTime() / 1000, link_name, link_expln, link_url, req.session.user.user_id, 'HYPERLINK'], function(err, result){
 				if(err) throw err;
-				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.insertId);
+				addNotification('RESOURCE', req.params.course_id, req.session.user.user_id, new Date().getTime() / 1000, result.rows[0].link_id);
 
 			});
 		}
@@ -305,13 +308,13 @@ exports.searchpage = function(req, res){
 	var course_results = '';
 	var cq = 'SELECT * FROM courses WHERE course_name REGEXP "[[:<:]]' + qu + '" LIMIT 0, 50';
 	var uq = 'SELECT * FROM "user" WHERE first_name REGEXP "[[:<:]]' + qu + '" OR last_name REGEXP "[[:<:]]' + qu + '" LIMIT 0, 50';
-	client.query(cq, function(err, rows, fields){
+	client.query(cq, function(err, result){
 		if(err) throw err;
-		course_results = rows;
-		client.query(uq, function(err, urows, fields){
+		course_results = result.rows;
+		client.query(uq, function(err, ures){
 			if(err) throw err;
 			client.end();
-			res.render('searchpage', {me: req.session.user, notif: req.notifications, query: qu, data: req.session.courses, qcourse: course_results, quser: urows});
+			res.render('searchpage', {me: req.session.user, notif: req.notifications, query: qu, data: req.session.courses, qcourse: course_results, quser: ures.rows});
 		});
 	});
 }
@@ -337,14 +340,14 @@ exports.person_interac = function(req, res){
 		res.send('You are not an instructor of this course! You do not have sufficient permissions to view this page!');
 	}
 	else{
-		client.query('SELECT * FROM "user" INNER JOIN user_course ON "user".user_id = user_course.user_id WHERE "user".user_id = $1 AND course_id = $2 AND role = 0', [pid, cid], function(err, rows, fields){
+		client.query('SELECT * FROM "user" INNER JOIN user_course ON "user".user_id = user_course.user_id WHERE "user".user_id = $1 AND course_id = $2 AND role = 0', [pid, cid], function(err, result){
 			if(err) throw err;
-			if(!rows){
+			if(!result.rows){
 				res.send('An error occurred! The specified student is not registered for this course!');
 			}
 			else{
-				client.query('select * from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det, fields){
-					res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: rows[0], contrib: det, loc: req.coursedet, portal: 'people', role: 1});
+				client.query('select * from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det, ){
+					res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
 				});
 			}
 		});
@@ -360,16 +363,16 @@ exports.generate_id = function(req, res){
 exports.joincourse = function(req, res){
 	var ckey = req.body.key;
 	var query = 'SELECT * FROM user_course INNER JOIN courses ON courses.course_id = user_course.course_id WHERE user_id = ' + req.session.user.user_id + ' AND course_key = ' + ckey;
-	client.query('SELECT * FROM user_course INNER JOIN courses ON courses.course_id = user_course.course_id WHERE user_id = $1 AND course_key = $2', [req.session.user.user_id, ckey], function(err, rows, fields){
+	client.query('SELECT * FROM user_course INNER JOIN courses ON courses.course_id = user_course.course_id WHERE user_id = $1 AND course_key = $2', [req.session.user.user_id, ckey], function(err, result){
 		if(err) throw err;
-		if(rows.length){res.send('-1'); return;}//already a member of the course
-		client.query('SELECT * FROM courses WHERE course_key = $1', [ckey], function(err, rows, fields){
+		if(result.rows.length){res.send('-1'); return;}//already a member of the course
+		client.query('SELECT * FROM courses WHERE course_key = $1', [ckey], function(err, result1){
 			if(err) throw err;
-			if(!rows.length){res.send('0'); return;} //no course with this key
+			if(!result1.rows.length){res.send('0'); return;} //no course with this key
 			else{
-				var id = rows[0].course_key;
-				req.session.courses.push(rows[0]);
-				client.query('INSERT INTO user_course (user_id, course_id, role) VALUES ($1, $2, 0)', [req.session.user.user_id, rows[0].course_id, 1], function(err, result){if(err) throw err; res.send(JSON.stringify(rows[0])); return;});
+				var id = result1.rows[0].course_key;
+				req.session.courses.push(result.rows[0]);
+				client.query('INSERT INTO user_course (user_id, course_id, role) VALUES ($1, $2, 0)', [req.session.user.user_id, result.rows[0].course_id, 1], function(err, result2){if(err) throw err; res.send(JSON.stringify(result1.rows[0])); return;});
 			}
 		});
 	});
@@ -425,9 +428,9 @@ exports.course_edit = function(req, res){
 		}
 	}
 	if(file_upload){
-		client.query('UPDATE courses SET course_label = $1, course_name = $2, masthead_img = $3, course_key = $4 WHERE course_id = $5', [clab, cname, name, ckey, cid], function(err, rows, fields){if(err) throw err; });
+		client.query('UPDATE courses SET course_label = $1, course_name = $2, masthead_img = $3, course_key = $4 WHERE course_id = $5', [clab, cname, name, ckey, cid], function(err, result){if(err) throw err; });
 	}else{
-		client.query('UPDATE courses SET course_label = $1, course_name = $2, course_key = $3 WHERE course_id = $4', [clab, cname, ckey, cid], function(err, rows, fields){if(err) throw err; });
+		client.query('UPDATE courses SET course_label = $1, course_name = $2, course_key = $3 WHERE course_id = $4', [clab, cname, ckey, cid], function(err, result){if(err) throw err; });
 	}
 	res.redirect('/courses/' + cid + '/admin');
 }
