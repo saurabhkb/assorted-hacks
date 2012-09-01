@@ -16,7 +16,7 @@ block scripts
 
 		$("document").ready(
 			function(){
-				var socket = io.connect("http://localhost:3000/streamposts");
+				var socket = io.connect("/streamposts");
 				socket.on('connect', function(){$("#loading").fadeOut(200);});
 				socket.on('user post', attachJSON);
 				$("#post-button").click(

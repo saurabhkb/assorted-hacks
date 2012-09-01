@@ -8,8 +8,8 @@ block scripts
 		}
 		$("document").ready(
 			function(){
-				var socket = io.connect("http://localhost:3000/assignments");
-				var comm_sock = io.connect("http://localhost:3000/assignment_comments");
+				var socket = io.connect("/assignments");
+				var comm_sock = io.connect("/assignment_comments");
 				socket.on('assignment', addAssignment);
 				$("#assgn-modal #start-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
 				$("#assgn-modal #end-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
