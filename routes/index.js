@@ -363,7 +363,7 @@ exports.searchpage = function(req, res){
 	var qu = req.query['q'];
 	var course_results = '';
 	var cq = "SELECT * FROM courses WHERE course_name LIKE '[[:<:]]" + qu + "' LIMIT 50";
-	var uq = 'SELECT * FROM "user" WHERE first_name LIKE \'[[:<:]]' + qu + '\' OR last_name REGEXP \'[[:<:]]' + qu + '\' LIMIT 50';
+	var uq = 'SELECT * FROM "user" WHERE first_name LIKE \'[[:<:]]' + qu + '\' OR last_name LIKE \'[[:<:]]' + qu + '\' LIMIT 50';
 	pg.connect(conString, function(err, client){
 		if(err) throw err;
 		client.query(cq, function(err, result){
