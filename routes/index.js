@@ -371,7 +371,6 @@ exports.searchpage = function(req, res){
 			course_results = result.rows;
 			client.query(uq, function(err, ures){
 				if(err) throw err;
-				client.end();
 				res.render('searchpage', {me: req.session.user, notif: req.notifications, query: qu, data: req.session.courses, qcourse: course_results, quser: ures.rows});
 			});
 		});
