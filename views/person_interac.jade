@@ -75,8 +75,7 @@ block maincontent
 					a(href="/user/#{user.user_id}/")
 						img(src="/images/user/#{user.img_id}", style="width: 60px; border-radius: 3px;")
 				td
-					a(href="/user/#{user.user_id}/")
-						#{user.first_name} #{user.last_name}
+					a(href="/user/#{user.user_id}/") #{user.first_name} #{user.last_name}
 	#contrib.maincol-content
 		each c in contrib
 			.assgn-unit(id="#{c.id}")
@@ -87,8 +86,7 @@ block maincontent
 								table(style="width: 100%;")
 									tr
 										td
-											.assgn-title
-												#{c.assignment_title}
+											.assgn-title #{c.assignment_title}
 									tr
 										td
 											span.date-title start date:
@@ -101,8 +99,7 @@ block maincontent
 													document.write(new Date(1000 * #{c.end_date}).toString("d MMM, yyyy"));
 									tr
 										td		
-											.assgn-desc
-												#{c.assignment_content}
+											.assgn-desc #{c.assignment_content}
 						td(style="width: 7em; text-align: center;")
 							if c.filename != null
 								if c.submission_date > c.end_date
