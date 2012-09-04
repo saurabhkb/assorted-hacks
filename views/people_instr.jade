@@ -46,8 +46,7 @@ block maincontent
 										a(href="/user/#{user.user_id}/")
 											img(src="/images/user/#{user.img_id}", style="width: 70px; border-radius: 3px;")
 									td(style="padding-left: 20px; width: 50em")
-										a(href="/user/#{user.user_id}/", style="text-transform: capitalize")
-											#{user.first_name} #{user.last_name}
+										a(href="/user/#{user.user_id}/", style="text-transform: capitalize") #{user.first_name} #{user.last_name}
 									if role == 1
 										td
 											a(href="people/#{user.user_id}/instr", style="font-size: 0.85em;") View Course Interaction
