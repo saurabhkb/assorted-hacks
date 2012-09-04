@@ -183,7 +183,7 @@ exports.comments = function(req, res){
 	if(req.session.user.user_id == uid || req.coursedet.role == 1){
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('SELECT * FROM a_commentsINNER JOIN "user" ON author_id = user_id WHERE assignment_source = $1 AND assignment_id = $2', [uid, aid], function(err, result){
+			client.query('SELECT * FROM a_comments INNER JOIN "user" ON author_id = user_id WHERE assignment_source = $1 AND assignment_id = $2', [uid, aid], function(err, result){
 				if(err) throw err;
 				res.send(JSON.stringify(result.rows));
 			});
