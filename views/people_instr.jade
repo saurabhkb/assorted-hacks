@@ -28,8 +28,7 @@ block maincontent
 											a(href="/user/#{people[0].user_id}/")
 												img(src="/images/user/#{people[0].img_id}", style="width: 70px; border-radius: 3px;")
 										td(style="padding-left: 20px;")
-											a(href="/user/#{people[0].user_id}/", style="text-transform: capitalize")
-												#{people[0].first_name} #{people[0].last_name}
+											a(href="/user/#{people[0].user_id}/", style="text-transform: capitalize") #{people[0].first_name} #{people[0].last_name}
 						else
 							div(style="color: red;").person no instructor
 		table(style="width: 100%;")
