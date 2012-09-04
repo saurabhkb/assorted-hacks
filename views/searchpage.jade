@@ -38,10 +38,8 @@ block maincontent
 											.sr-masthead
 												img(src="/images/masthead/#{c.masthead_img}", style="width: 7em; border-radius: 4px")
 										td
-											.sr-title
-												#{c.course_name}
-											.sr-desc
-												#{c.course_desc}
+											.sr-title #{c.course_name}
+											.sr-desc #{c.course_desc}
 
 				#users
 					if quser.length == 0
@@ -58,6 +56,5 @@ block maincontent
 											.sr-masthead
 												img(src="/images/user/#{u.img_id}", style="width: 7em; border-radius: 4px")
 										td
-											.sr-title
-												#{u.first_name} #{u.last_name}
+											.sr-title #{u.first_name} #{u.last_name}
 
