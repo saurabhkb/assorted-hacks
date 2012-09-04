@@ -166,7 +166,7 @@ exports.assignment_det = function(req, res){
 	else{
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('select first_name, last_name, T.user_id, img_id, submission_id, submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = 1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
+			client.query('select first_name, last_name, T.user_id, img_id, submission_id, submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = $1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
 				if(err) throw err;
 				client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
 					if(err) throw err;
