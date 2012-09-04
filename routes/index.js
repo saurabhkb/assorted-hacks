@@ -410,7 +410,7 @@ exports.person_interac = function(req, res){
 				}
 				else{
 					client.query('select * from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det){
-						res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
+						res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: result.rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
 					});
 				}
 			});
