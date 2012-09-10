@@ -43,7 +43,7 @@ exports.coursepage = function(req, res){
 	if(p == 'main' || p == ''){
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('SELECT * FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
+			client.query('SELECT id, course_id, author_id, post_content, to_char(to_timestamp(post_timestamp), \'HH12:MM am D,mon YYYY\') as post_timestamp, user.* FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
 			if(err) throw err;
 			res.render('mainpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, prev_posts: result.rows, role: r, notif: req.notifications});});
 		});
@@ -52,7 +52,7 @@ exports.coursepage = function(req, res){
 		if(r == 0){
 			pg.connect(conString, function(err, client){
 				if(err) throw err;
-				client.query('select * from assignments left join (select * from submissions where user_id = $1) as t on id = assignment_id where course_id = $2', [req.session.user.user_id, course_det.course_id], function(err, result){
+				client.query('select id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks, to_char(to_timestamp(submission_date), \'HH12:MM am D,mon YYYY\') as submission_date, user_id, filename, marks, submission_id, assignment_id from assignments left join (select * from submissions where user_id = $1) as t on id = assignment_id where course_id = $2', [req.session.user.user_id, course_det.course_id], function(err, result){
 					if(err) throw err;
 					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
@@ -61,7 +61,7 @@ exports.coursepage = function(req, res){
 		else if(r == 1){
 			pg.connect(conString, function(err, client){
 				if(err) throw err;
-				client.query('SELECT * FROM assignments  WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
+				client.query('SELECT id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks FROM assignments  WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 					if(err) throw err;
 					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
@@ -70,7 +70,7 @@ exports.coursepage = function(req, res){
 		else if(r == -1){
 			pg.connect(conString, function(err, client){
 				if(err) throw err;
-				client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
+				client.query('SELECT id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 					if(err) throw err;
 					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
@@ -98,9 +98,9 @@ exports.coursepage = function(req, res){
 	else if(p == 'resources'){
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('SELECT * FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_result){
+			client.query('SELECT id, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, filename, explanation, filetype, user.* FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_result){
 				if(err) throw err;
-				client.query('SELECT * FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
+				client.query('SELECT user.*, link_id, link_type, link_url, link_name, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, explanation FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
 					if(err) throw err;
 				res.render('resource_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_result.rows, links: link_result.rows, notif: req.notifications});
 				});
@@ -166,7 +166,7 @@ exports.assignment_det = function(req, res){
 	else{
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('select first_name, last_name, T.user_id, img_id, submission_id, submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = $1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
+			client.query('select first_name, last_name, T.user_id, img_id, submission_id, to_char(to_timestamp(submission_date), "HH12:MM AM DD month YYYY"), filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = $1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
 				if(err) throw err;
 				client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
 					if(err) throw err;
@@ -256,6 +256,22 @@ exports.editprofile = function(req, res){
 	res.redirect('/user/profile/');
 };
 
+exports.update_mks = function(req, res){
+	var aid = req.params.a_id;
+	var uid = req.body.user_id;
+	var mks = req.body.mks;
+	pg.connect(conString, function(err, client){
+		if(err) throw err;
+		client.query("SELECT * FROM `assignments` WHERE `id` = ?", [aid], function(err, rows, fields){
+			if(err) throw err;
+			if(rows.length != 1) res.send("0");
+			console.log(rows);
+			if(mks && mks != "" && mks.trim() != "" && isNaN(mks) == false && mks <= parseInt(rows[0].total_marks)){
+				connection.query("UPDATE `submissions` SET `marks` = ? WHERE `assignment_id` = ? AND `user_id` = ?", [mks, aid, uid], function(err, rows, fields){if(err) throw err; console.log("fjdkls");res.send("1");});
+			}else res.send("0");
+		});
+	});
+}
 exports.extraoptions = function(req, res){
 	var course_id = req.params.course_id;
 	var portal = req.params.portal;
@@ -390,7 +406,7 @@ exports.notif = function(req, res){
 				if(err) throw err;
 			});
 		});
-		res.send(1);
+		res.send("1");
 	}
 }
 
@@ -409,7 +425,7 @@ exports.person_interac = function(req, res){
 					res.send('An error occurred! The specified student is not registered for this course!');
 				}
 				else{
-					client.query('select * from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det){
+					client.query('select id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks, submission_id, assignment_id, to_char(to_timestamp(submission_date), \'HH12:MM am D,mon YYYY\') as submission_date, user_id, filename, marks from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det){
 						res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: result.rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
 					});
 				}

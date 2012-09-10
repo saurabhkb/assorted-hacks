@@ -268,36 +268,30 @@ block maincontent
 											tr
 												td(style="font-size: 0.8em;") start date:
 												td
-													.start-date
-														script
-															document.write(new Date(1000 * #{assg.start_date}).toString("d MMM, yyyy"));
+													.start-date #{assg.start_date}
 												td(style="padding-left: 20px; font-size: 0.8em;") due date:
 												td
-													.end-date
-														script
-															document.write(new Date(1000 * #{assg.end_date}).toString("d MMM, yyyy"));
+													.end-date  #{assg.end_date}
 									.assgnmnt-content #{assg.assignment_content}
 						if role == 0
-							td(style="width: 7em; text-align: center")
+							td(style="width: 6em; text-align: center")
 								if assg.submission_date != null
-									span.sub-date
-										script
-											document.write(new Date(1000 * #{assg.submission_date}).toString("d MMM, yyyy"));
+									span.sub-date #{assg.submission_date}
 								else
 									span(style="color: gray;") ---
 									
-							td(style="width: 20em; text-align: center")
+							td(style="width: 15em; text-align: center")
 									.assgn-opt
 										if assg.filename == null
 											a(href="").student-submit-assgn submit assignment
 											input(type="hidden", value="#{assg.id}", id="assg_id")
 										else
 											a(href="/submissions/#{assg.submission_id}", target="_window") #{assg.filename}
-									td
+									td(style="width: 4em;")
 										.comments(id="#{assg.id}")
 											a(href="")
 												img(src="/images/chat.png", style="width: 30px", title="comments")
-									td
+									td(style="width: 6em;")
 										.grade
 											if assg.marks == null
 												-assg.marks = 0
@@ -305,9 +299,10 @@ block maincontent
 											span.slash /
 											span.outof #{assg.total_marks}
 						else if role == 1
-							td(style="width: 6em;")
+							td(style="width: 7em;")
 								.assgn-opt#view-submissions
-									a(href="/courses/#{loc.course_id}/assignments/#{assg.id}/instr") view all student submissions
+									a(href="/courses/#{loc.course_id}/assignments/#{assg.id}/instr", style="margin-right: 8px").nav-assg-det student submissions
+									input(type="hidden", value="#{assg.id}").nav-assg-id
 						if role == 1
 							td(style="width: 4em; font-size: 0.9em; color: gray;")
 								.assgn-opt#edit-opt(style="border-left: thin solid")

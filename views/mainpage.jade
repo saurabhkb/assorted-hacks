@@ -107,9 +107,7 @@ block maincontent
 									td(style="width: 57em;")
 										.post-author
 											a(href="/user/#{post.user_id}/home/") #{post.first_name} #{post.last_name}
-										.post-date-time
-											script
-												document.write(new Date(1000 * #{post.post_timestamp}).toString("hh:mm d MMM, yyyy"));
+										.post-date-time #{post.post_timestamp}
 										.post-content #{post.post_content}
 									td
 										.comment-opt

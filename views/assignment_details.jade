@@ -42,6 +42,32 @@ block scripts
 						return false;
 					}
 				);
+				$(".marks").click(
+					function(){
+						if($(this).find("input").hasClass("disabled")) return;
+						$(this).find("input").addClass("editable_inp");
+						$(this).find("input").prop("readonly", "");
+					}
+				);
+
+				$(document).keypress(
+					function(e){
+						if(e.which == 13){
+							var activemks  = $(".marks input:focus");
+							if(activemks.hasClass("disabled")) return;
+							var user_id = $(".marks input:focus").siblings(".mks_user_id").val();
+							if(activemks != null){
+								var l = activemks.parents("table").find(".loader");
+								if(activemks.val() && activemks.val() != "" && activemks.val().trim() != "" && isNaN(activemks.val()) == false && activemks.val() <= parseInt(activemks.parents("table").find(".outof").text())){
+									activemks.removeClass("editable_inp");
+									activemks.blur();
+									l.show();
+									$.post("/courses/#{loc.course_id}/assignments/#{assg.id}/update_mks/", {user_id: user_id, mks: activemks.val()}, function(resp){l.hide();});
+								}
+							}
+						}
+					}
+				);
 			}
 		);
 block maincontent
@@ -53,59 +79,84 @@ block maincontent
 				tr
 					td
 						span.date-title start date:
-						span.start-date
-							script
-								document.write(new Date(#{assg.start_date} * 1000).toString("d MMM, yyyy"))
+						span.start-date #{assg.start_date}
 					td(style="padding-left: 20px;")
 						span.date-title end date:
-						span.end-date
-							script
-								document.write(new Date(#{assg.end_date} * 1000).toString("d MMM, yyyy"))
+						span.end-date #{assg.end_date}
 		
 	#user-list.maincol-content
 		if assgn_data.length == 0
-			div(style="color: gray; text-align: center;") No users
+			div(style="color: gray; text-align: center;") No students
 		each u in assgn_data
 			.user-unit
-				table
+				table(style="width: 100%;")
 					tr
-						td
+						td(style="width: 20px;")
 							.user-img
 								a(href="/user/#{u.user_id}/")
 									img(src="/images/user/#{u.img_id}")
-						td
+						td(style="width: 18em;")
 							.user-name
 								a(href="/user/#{u.user_id}/") #{u.first_name} #{u.last_name}
-						td
+						td(style="width: 7em;")
 							.sub-date
 								if u.submission_date != null
 									if assg.end_date > u.submission_date
-										script
-											document.write("<span style='color: green;'>" + new Date(1000 * #{u.submission_date}).toString("d MMM, yyyy") + "</span>");
+										span(style='color: green') #{u.submission_date}
 									else
-										script
-											document.write("<span style='color: red'>" + new Date(1000 * #{u.submission_date}).toString("d MMM, yyyy") + "</span>");
+										span(style='color: red') #{u.submission_date}
 								else
 									.no-sub-date ---
-						td
+						td(style="width: 15em;")
 							.user-sub
 								if u.filename == null
 									.no-sub no submission
 								else if u.filename != null
 									.yes-sub
 										a(href="/submissions/#{u.submission_id}", target="_window") #{u.filename}
-						td
+						td(style="width: 7em;")
 							input(type="hidden", value="#{u.user_id}", class="comment_user_id")
 							.comments
 								a(href="")
 									img(src="/images/chat.png", style="width: 25px;", title="comments")
-						td
+						td(style="width: 7em;")
 							.grade
-								if u.marks == null
-									-u.marks = 0
-								span.marks #{u.marks}
-								span.slash /
-								span.outof #{assg.total_marks}
+								-var mks = 0
+								if u.marks != null
+									-var mks = u.marks
+								- if(u.marks == null)
+									table(style="opacity: 0.5")
+										tr
+											td
+												span.marks
+													if u.marks != null
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp")
+													else
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp disabled")
+													input(type="hidden", value="#{u.user_id}", class="mks_user_id")
+											td
+												span.slash /
+											td
+												span.outof #{assg.total_marks}
+											td
+												img(src="/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
+
+								- else
+									table
+										tr
+											td
+												span.marks
+													if u.marks != null
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp")
+													else
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp disabled")
+													input(type="hidden", value="#{u.user_id}", class="mks_user_id")
+											td
+												span.slash /
+											td
+												span.outof #{assg.total_marks}
+											td
+												img(src="/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
 	#comments-window.modal-window
 		.modal-content
 			#comment-list

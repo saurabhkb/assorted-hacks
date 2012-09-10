@@ -97,11 +97,8 @@ block maincontent
 							td
 								.table-text(style="margin-left: 4px;") on
 							td
-								.resource-date
-									script
-										document.write(new Date(#{res.upload_date}).toString("d MMM, yyyy"));
-				.resource-expln
-					#{res.explanation}
+								.resource-date #{res.upload_date}
+				.resource-expln #{res.explanation}
 		each res in links
 			.resource-unit
 				.resource-link(id="#{res.id}")
@@ -122,10 +119,7 @@ block maincontent
 							td
 								.table-text(style="margin-left: 4px;") on
 							td
-								.resource-date
-									script
-										document.write(new Date(#{res.upload_date}).toString("d MMM, yyyy"));
-				.resource-expln
-					#{res.explanation}
+								.resource-date #{res.upload_date}
+				.resource-expln #{res.explanation}
 
 

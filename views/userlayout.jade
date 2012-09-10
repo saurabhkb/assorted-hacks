@@ -107,9 +107,7 @@ html
 												a(href="/courses/#{notification.course_id}/main##{notification.reference}")
 													.notif-content #{notification.first_name} #{notification.last_name} posted in
 														span.notif-course #{notification.course_name}
-														div.notif-event-date	
-															script
-																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMMM, yyyy  hh:mm"))
+														div.notif-event-date #{notification.timestamp}
 								else if notification.type == "ASSIGNMENT"
 									table
 										tr
@@ -121,9 +119,7 @@ html
 												a(href="/courses/#{notification.course_id}/assignments##{notification.reference}")
 													.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
 														span.notif-course #{notification.course_name}
-														div.notif-event-date
-															script
-																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMM, yyyy  hh:mm"))
+														div.notif-event-date #{notification.timestamp}
 								else if notification.type == "RESOURCE"
 									table
 										tr
@@ -135,9 +131,7 @@ html
 												a(href="/courses/#{notification.course_id}/resources##{notification.reference}")
 													.notif-content #{notification.first_name} #{notification.last_name} added a resource in
 														span.notif-course #{notification.course_name}
-														div.notif-event-date
-															script
-																document.write(new Date(#{notification.timestamp} *  1000).toString("d MMM, yyyy  hh:mm")) 
+														div.notif-event-date #{notification.timestamp}
 
 
 					.not-bubble-arrow-border
