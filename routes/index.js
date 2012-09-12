@@ -43,7 +43,7 @@ exports.coursepage = function(req, res){
 	if(p == 'main' || p == ''){
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('SELECT id, course_id, author_id, post_content, to_char(to_timestamp(post_timestamp), \'HH12:MM am D,mon YYYY\') as post_timestamp, user.* FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
+			client.query('SELECT id, course_id, author_id, post_content, to_char(to_timestamp(post_timestamp), \'HH12:MM am D,mon YYYY\') as post_timestamp, "user".* FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
 			if(err) throw err;
 			res.render('mainpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, prev_posts: result.rows, role: r, notif: req.notifications});});
 		});
@@ -98,9 +98,9 @@ exports.coursepage = function(req, res){
 	else if(p == 'resources'){
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('SELECT id, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, filename, explanation, filetype, user.* FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_result){
+			client.query('SELECT id, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, filename, explanation, filetype, "user".* FROM resources INNER JOIN "user" ON resources.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, res_result){
 				if(err) throw err;
-				client.query('SELECT user.*, link_id, link_type, link_url, link_name, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, explanation FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
+				client.query('SELECT "user".*, link_id, link_type, link_url, link_name, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, explanation FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
 					if(err) throw err;
 				res.render('resource_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_result.rows, links: link_result.rows, notif: req.notifications});
 				});
