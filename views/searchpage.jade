@@ -1,4 +1,4 @@
-extends userlayout
+extends skeleton
 block styles
 	link(href="/stylesheets/search.css", rel="Stylesheet")
 block scripts
@@ -8,8 +8,7 @@ block scripts
 				$("#tabs").tabs();
 			}
 		);
-block course_header
-block maincontent
+block body
 	#search-results-wrap
 		#query-title
 			span#intro search results for:

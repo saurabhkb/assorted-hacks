@@ -1,4 +1,4 @@
-extends userlayout
+extends skeleton
 block styles
 	link(rel="stylesheet", href="/stylesheets/profile.css")
 block scripts
@@ -16,8 +16,7 @@ block scripts
 				);
 			}
 		);
-block course_header
-block maincontent
+block body
 	#profile-img(style="width: 100%;")
 		img(src="/images/user/#{me.img_id}", style="width: inherit; height: inherit")
 	#profile-title
