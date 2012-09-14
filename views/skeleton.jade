@@ -13,6 +13,8 @@ html
 		script
 			$(document).ready(
 				function(){
+					//MODAL WINDOW PROPERTIES
+					$(".modal-window").dialog({autoOpen: false, minWidth: 100, minHeight: 100, modal: true, resizable: false, draggable: false});
 					addNavigJs(io);
 					$("#join-course-a").click(function(e){e.preventDefault(); $(".join-course-div").toggle();});
 					$("#join-course-inp").focus(

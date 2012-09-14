@@ -40,8 +40,6 @@ function addNavigJs(io)
 	);
 
 
-	//MODAL WINDOW PROPERTIES
-	$(".modal-window").dialog({autoOpen: false, minWidth: 100, minHeight: 100, modal: true, resizable: false, draggable: false});
 
 	/*$(document).keyup(function(e){
 		if(e.keyCode == 27)
