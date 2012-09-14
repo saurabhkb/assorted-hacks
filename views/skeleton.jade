@@ -1,0 +1,181 @@
+!!! 5
+html
+	head
+		title Teachfruit
+		link(rel="icon", type="image/png", href="/images/tf2.png")
+		script(src='/javascripts/jquery-1.7.2.min.js')
+		script(src='/socket.io/socket.io.js')
+		block scripts
+		link(rel='stylesheet', href='/stylesheets/reset.css')
+		link(rel='stylesheet', href='/stylesheets/html-elem.css')
+		block styles
+		script
+			$(document).ready(
+				function(){
+					addNavigJs(io);
+					$("#join-course-a").click(function(e){e.preventDefault(); $(".join-course-div").toggle();});
+					$("#join-course-inp").focus(
+						function(){
+							if($(this).val() == "enter course key")
+								$(this).val("");
+						}
+					);
+					$("#join-course-inp").blur(
+						function(){
+							if($(this).val() == "" || $(this).val().trim() == ""){
+								$(this).val("enter course key");
+							}
+						}
+					);
+					$("#join-course-btn").click(
+						function(e){
+							e.preventDefault();
+							var txt = $("#join-course-inp");
+							if(txt.val() == "enter course key" || txt.val() == "" || txt.val().trim() == ""){
+								txt.val("");
+								txt.focus();
+							}
+							else{
+								var ckey = $("#join-course-inp").val();
+								$(".join-course-load").show();
+								$.post("/join_course/", {key: ckey}, function(reply){
+									$(".join-course-load").hide();
+									if(reply == "-1")
+										$("#join-course-result").text("you have already signed up for this course dumbass...")
+									else if(reply == "0")
+										$("#join-course-result").text("making up course keys are we?")
+									else{
+										var obj = JSON.parse(reply);
+										$("#join-course-result").html("<div class='potential-course'>you have signed up for : <br/><a href='/courses/" + obj.course_id + "/main/'>" + obj.course_name + "</a></div>");
+									}
+										
+								});
+							}
+						}
+					);
+				}
+			);
+	body
+		block header
+			#header
+				#site-title-mini
+					a(href="") Teachfruit
+				#search-div
+					form(action="/search/", method="get")
+						input(type="text", name="q", size="40", autocomplete="off")#search-txtbox.textinput
+						button(style="padding: 3px 14px 0px 14px; margin-left: 3px;")#search-btn.button
+							img(src="/images/search1.png")
+				-var right = 10
+				#user-opt-box
+					.user-opt-box-unit(style="right: #{right + 60 + 110 + 80 + 80 + 10}px; top: 0px;")
+						-i = 0
+						each n in notif
+							if n.seen == 0
+								-i = i + 1
+						if i == 0
+							button#not-btn.button #{i}
+						else
+							button#not-btn.button.green-btn #{i}
+					.not-bubble(style="right: #{right + 60 + 110 + 80 + 80 + 10 - 25}px")
+						if notif.length == 0
+							#no-courses no notifications!
+						#notif-list
+							each notification in notif
+								.notification(id="#{notification.id}")
+									if notification.type == "STREAM"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+														.img
+															img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+												td
+													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} posted in
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+									else if notification.type == "ASSIGNMENT"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+														.img
+															img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+												td
+													a(href="/courses/#{notification.course_id}/assignments##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+									else if notification.type == "RESOURCE"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+														.img
+															img(src="/images/user/#{notification.img_id}", style="width: 50px;")
+												td
+													a(href="/courses/#{notification.course_id}/resources##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} added a resource in
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+
+
+						.not-bubble-arrow-border
+						.not-bubble-arrow
+					.user-opt-box-unit(style="right: #{right + 25 + 110 + 80 + 60}px")
+						a(href="/user/home/") home
+					.user-opt-box-unit(style="right: #{right + 40 + 110 + 80}px")
+						span
+							a(href="#")
+								span#me me
+								span.down-arrow
+					.me-bubble(style="right: #{right + 40 + 110 + 50}px; width: 200px")
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my profile
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my history
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my cabinet
+						.action-bubble-arrow-border
+						.action-bubble-arrow
+					.user-opt-box-unit(style="right: #{right + 50 + 110}px")
+						a(href="/user/home/")
+							span#actions actions
+							span.down-arrow
+					.action-bubble(style="right: #{right + 50 + 110 - 25}px")
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/create_course") Create a Course
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="#")#join-course-a Join a Course
+							.join-course-div
+								form(action="")
+									input(type="text", value="enter course key", autocomplete="off")#join-course-inp.textinput
+									button(style="padding: 3px 4px 4px 4px; margin-left: 2px;")#join-course-btn.green-btn go
+									.join-course-load(style="position: absolute; right: 57px; top: 69px; display: none;")
+										img(src="/images/loader.gif", style="width: 20px;")
+								.bubble-course-elem#join-course-result(style="color: white;")
+						.action-bubble-arrow-border
+						.action-bubble-arrow
+					#course-list.user-opt-box-unit(style="right: #{right + 60}px")
+						a(href="#")
+							span#mycourses my courses
+							span.down-arrow
+					.bubble
+						-if(data.length == 0)
+							#no-courses no courses!
+						each course in data
+							.bubble-course-elem
+								.bubble-course-elem-title
+									a(href="/courses/#{course.course_id}/main") #{course.course_name}
+									span.bubble-course-id #{course.course_label}
+						.bubble-arrow-border
+						.bubble-arrow
+					.user-opt-box-unit(style="padding: 0px 10px 0px 10px; right: #{right - 2}px")
+						a(href="/logout") log out
+		#wrapper
+			block body
