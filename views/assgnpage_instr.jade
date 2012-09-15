@@ -1,6 +1,6 @@
 extends course_skeleton
 block scripts
-	script(src="/javascripts/timepicker.js")
+	script(src="https://s3.amazonaws.com/radiant-sky/public/javascripts/timepicker.js")
 	script
 		function addAssignment(from, msg, id){
 			obj = JSON.parse(msg);
@@ -154,8 +154,8 @@ block scripts
 			}
 		);
 block styles
-	link(href='/stylesheets/assgn.css', rel='Stylesheet')
-	link(href='/stylesheets/comment.css', rel='Stylesheet')
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/assgn.css', rel='Stylesheet')
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/comment.css', rel='Stylesheet')
 block maincontent
 	if(role == 1)
 		#create-assgn
