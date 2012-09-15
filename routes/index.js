@@ -3,7 +3,7 @@
  */
 
 exports.index = function(req, res){
-	res.render('index', { title: 'Teachfruit' })
+	res.render('index', { title: 'Radiant Sky' })
 };
 
 exports.home = function(req, res){
