@@ -16,7 +16,7 @@ block maincontent
 									tr
 										td
 											a(href="/user/#{people[0].user_id}/")
-												img(src="/images/user/#{people[0].img_id}", style="width: 70px; border-radius: 3px;")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{people[0].img_id}", style="width: 70px; border-radius: 3px;")
 										td(style="padding-left: 20px;")
 											a(href="/user/#{people[0].user_id}/", style="text-transform: capitalize") #{people[0].first_name} #{people[0].last_name}
 						else
@@ -33,7 +33,7 @@ block maincontent
 								tr
 									td
 										a(href="/user/#{user.user_id}/")
-											img(src="/images/user/#{user.img_id}", style="width: 70px; border-radius: 3px;")
+											img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{user.img_id}", style="width: 70px; border-radius: 3px;")
 									td(style="padding-left: 20px; width: 50em")
 										a(href="/user/#{user.user_id}/", style="text-transform: capitalize") #{user.first_name} #{user.last_name}
 									if role == 1

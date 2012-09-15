@@ -18,7 +18,7 @@ block scripts
 		);
 block body
 	#profile-img(style="width: 100%;")
-		img(src="/images/user/#{me.img_id}", style="width: inherit; height: inherit")
+		img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}", style="width: inherit; height: inherit")
 	#profile-title
 		#profile-name
 			a(href="#") #{me.first_name} #{me.last_name}

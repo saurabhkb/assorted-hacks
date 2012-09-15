@@ -23,7 +23,7 @@ block scripts
 								$(".load-comments").hide();
 								var com = JSON.parse(json);
 								for(var i = 0; i < com.length; i++)
-									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
 							});
 							return false;
 						}
@@ -34,7 +34,7 @@ block scripts
 						var cmment = $("#comments-window #comment-box").val().trim();
 						var target = $(this).siblings("#user_id").val();
 						if(cmment){
-							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
 							socket.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: #{assg.id}}));
 						}
 						$("#comment-box").val("");
@@ -94,7 +94,7 @@ block maincontent
 						td(style="width: 20px;")
 							.user-img
 								a(href="/user/#{u.user_id}/")
-									img(src="/images/user/#{u.img_id}")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{u.img_id}")
 						td(style="width: 18em;")
 							.user-name
 								a(href="/user/#{u.user_id}/") #{u.first_name} #{u.last_name}
@@ -118,7 +118,7 @@ block maincontent
 							input(type="hidden", value="#{u.user_id}", class="comment_user_id")
 							.comments
 								a(href="")
-									img(src="/images/chat.png", style="width: 25px;", title="comments")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/chat.png", style="width: 25px;", title="comments")
 						td(style="width: 7em;")
 							.grade
 								-var mks = 0
@@ -139,7 +139,7 @@ block maincontent
 											td
 												span.outof #{assg.total_marks}
 											td
-												img(src="/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
 
 								- else
 									table
@@ -156,12 +156,12 @@ block maincontent
 											td
 												span.outof #{assg.total_marks}
 											td
-												img(src="/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", style="width: 18px; margin-left: 5px; display: none;").loader
 	#comments-window.modal-window
 		.modal-content
 			#comment-list
 				.load-comments
-					img(src="/images/loader.gif")
+					img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
 			#add-comment
 				form
 					input(type="hidden", id="user_id", name="user_id")

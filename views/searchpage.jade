@@ -25,7 +25,7 @@ block body
 				#courses
 					if qcourse.length == 0
 						.no-result
-							img(src="/images/close3.png", style="margin-bottom:4px;")
+							img(src="https://s3.amazonaws.com/radiant-sky/public/images/close3.png", style="margin-bottom:4px;")
 							br
 							|No course results found
 					each c in qcourse
@@ -35,7 +35,7 @@ block body
 									tr
 										td
 											.sr-masthead
-												img(src="/images/masthead/#{c.masthead_img}", style="width: 7em; border-radius: 4px")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/masthead/#{c.masthead_img}", style="width: 7em; border-radius: 4px")
 										td
 											.sr-title #{c.course_name}
 											.sr-desc #{c.course_desc}
@@ -43,7 +43,7 @@ block body
 				#users
 					if quser.length == 0
 						.no-result
-							img(src="/images/close3.png", style="margin-bottom:4px;")
+							img(src="https://s3.amazonaws.com/radiant-sky/public/images/close3.png", style="margin-bottom:4px;")
 							br
 							|No user results found
 					each u in quser
@@ -53,7 +53,7 @@ block body
 									tr
 										td
 											.sr-masthead
-												img(src="/images/user/#{u.img_id}", style="width: 7em; border-radius: 4px")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{u.img_id}", style="width: 7em; border-radius: 4px")
 										td
 											.sr-title #{u.first_name} #{u.last_name}
 
