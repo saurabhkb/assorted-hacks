@@ -172,9 +172,9 @@ html
 							span#mycourses my courses
 							span.down-arrow
 					.bubble
-						-if(data.length == 0)
+						-if(course_data.length == 0)
 							#no-courses no courses!
-						each course in data
+						each course in course_data
 							.bubble-course-elem
 								.bubble-course-elem-title
 									a(href="/courses/#{course.course_id}/main") #{course.course_name}

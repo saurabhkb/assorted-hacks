@@ -38,6 +38,10 @@ block body
 					input(type="text", name="emid", value="#{me.email_id}").textinput
 				.edit-unit
 					.fieldname Profile Image
-					input(type="file", name="img").textinput
+					input(type="file", name="img", style="display: none;")#inv-file
+					input(type="button", value="browse", style="display: inline-block").button#browse-click
+					#clear-file
+						a(href="#") x
+					input(readonly="readonly").textinput#file-name
 				input(type="submit", value="save changes", style="padding: 5px 10px; font-size: 13px; margin-right: 10px;")#save-changes.green-btn
 				input(type="submit", value="cancel")#save-changes.cancel.button

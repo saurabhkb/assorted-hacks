@@ -11,6 +11,14 @@ block scripts
 						$.post("/course_key/", function(k){$("#key_space").text(k); $("#hid_key_space").val(k);});
 					}
 				);
+				$("#restore-defaults").click(
+					function(e){
+						e.preventDefault();
+						$("#cname").val("#{loc.course_name}");
+						$("#cid").val("#{loc.course_label}");
+						$("#key_space").text("#{loc.course_key}");
+					}
+				);
 			}
 		);
 block maincontent
@@ -24,17 +32,21 @@ block maincontent
 							td
 								.fieldname Course Name
 							td
-								input(type="text", name="cname", value="#{loc.course_name}").textinput
+								input(type="text", name="cname", value="#{loc.course_name}")#cname.textinput
 						tr
 							td
 								.fieldname Course Id
 							td
-								input(type="text", name="clab", value="#{loc.course_label}").textinput
+								input(type="text", name="clab", value="#{loc.course_label}")#cid.textinput
 						tr
 							td
 								.fieldname Masthead Image
 							td
-								input(type="file", name="masthead_img")
+								input(type="file", name="masthead_img", style="display: none;")#inv-file
+								input(type="button", value="browse").button#browse-click
+								#clear-file
+									a(href="#") x
+								input(readonly="readonly").textinput#file-name
 						tr
 							td
 								.fieldname Course Key
@@ -47,7 +59,7 @@ block maincontent
 							td
 								input(type="submit", value="save changes").button
 							td
-								a(href="", style="font-size: 13px;").button restore defaults
+								a(href="", style="font-size: 13px;")#restore-defaults.button restore defaults
 		.setting-unit
 			.setting-title Course Actions
 			.setting-content

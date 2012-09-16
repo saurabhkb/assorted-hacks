@@ -7,7 +7,7 @@ exports.index = function(req, res){
 };
 
 exports.home = function(req, res){
-	res.render('home', {loc: 'home', data: req.session.courses, me: req.session.user, notif: req.notifications});
+	res.render('home', {loc: 'home', course_data: req.session.courses, me: req.session.user, notif: req.notifications});
 };
 function addNotification(type, course_id, source_id, timestamp, ref_id){
 	pg.connect(conString, function(err, client){
@@ -45,7 +45,7 @@ exports.coursepage = function(req, res){
 			if(err) throw err;
 			client.query('SELECT id, course_id, author_id, post_content, to_char(to_timestamp(post_timestamp), \'HH12:MM am D,mon YYYY\') as post_timestamp, "user".* FROM posts INNER JOIN "user" ON author_id = user_id WHERE course_id = $1 ORDER BY post_timestamp DESC', [course_det.course_id], function(err, result){
 			if(err) throw err;
-			res.render('mainpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, prev_posts: result.rows, role: r, notif: req.notifications});});
+			res.render('mainpage', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, prev_posts: result.rows, role: r, notif: req.notifications});});
 		});
 	}
 	else if(p == 'assignments'){
@@ -54,7 +54,7 @@ exports.coursepage = function(req, res){
 				if(err) throw err;
 				client.query('select id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks, to_char(to_timestamp(submission_date), \'HH12:MM am D,mon YYYY\') as submission_date, user_id, filename, marks, submission_id, assignment_id from assignments left join (select * from submissions where user_id = $1) as t on id = assignment_id where course_id = $2', [req.session.user.user_id, course_det.course_id], function(err, result){
 					if(err) throw err;
-					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
+					res.render('assgnpage_instr', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
 			});
 		}
@@ -63,7 +63,7 @@ exports.coursepage = function(req, res){
 				if(err) throw err;
 				client.query('SELECT id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks FROM assignments  WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 					if(err) throw err;
-					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
+					res.render('assgnpage_instr', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
 			});
 		}
@@ -72,7 +72,7 @@ exports.coursepage = function(req, res){
 				if(err) throw err;
 				client.query('SELECT id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 					if(err) throw err;
-					res.render('assgnpage_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
+					res.render('assgnpage_instr', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, assgns: result.rows, role: r, notif: req.notifications});
 				});
 			});
 		}
@@ -82,7 +82,7 @@ exports.coursepage = function(req, res){
 			if(err) throw err;
 			client.query('SELECT * FROM assignments WHERE course_id = $1 ORDER BY creation_date ASC', [course_det.course_id], function(err, result){
 					if(err) throw err;
-					res.render('calendarpage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications, assgns: result.rows});
+					res.render('calendarpage', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications, assgns: result.rows});
 			});
 		});
 	}
@@ -91,7 +91,7 @@ exports.coursepage = function(req, res){
 			if(err) throw err;
 			client.query('SELECT * FROM user_course INNER JOIN "user" ON user_course.user_id = "user".user_id WHERE course_id = $1 ORDER BY role DESC', [course_det.course_id], function(err, result){
 				if(err) throw err;
-				res.render('people_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, people: result.rows, notif: req.notifications});
+				res.render('people_instr', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, role: r, people: result.rows, notif: req.notifications});
 			});
 		});
 	}
@@ -102,19 +102,19 @@ exports.coursepage = function(req, res){
 				if(err) throw err;
 				client.query('SELECT "user".*, link_id, link_type, link_url, link_name, course_id, to_char(to_timestamp(upload_date), \'HH12:MM am D,mon YYYY\') as upload_date, explanation FROM resource_links INNER JOIN "user" ON resource_links.user_id = "user".user_id WHERE course_id = $1 ORDER BY upload_date DESC', [course_det.course_id], function(err, link_result){
 					if(err) throw err;
-				res.render('resource_instr', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_result.rows, links: link_result.rows, notif: req.notifications});
+				res.render('resource_instr', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, role: r, resources: res_result.rows, links: link_result.rows, notif: req.notifications});
 				});
 			});
 		});
 	}
 	else if(p == 'admin'){
-		res.render('course_admin', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications});
+		res.render('course_admin', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications});
 	}
 	else
-		res.render('coursepage', {loc: course_det, data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications});
+		res.render('coursepage', {loc: course_det, course_data: req.session.courses, portal: p, me: req.session.user, role: r, notif: req.notifications});
 }
 exports.create_course_view = function(req, res){
-	res.render('create_course', {me: req.session.user, loc: 'create_course', data: req.session.courses, notif: req.notifications});
+	res.render('create_course', {me: req.session.user, loc: 'create_course', course_data: req.session.courses, notif: req.notifications});
 };
 exports.addcourse = function(req, res){
 	var name = req.body.cname;
@@ -151,7 +151,7 @@ exports.userpage = function(req, res){
 			if(!result.rows[0]) res.render('page_not_found');
 			else{
 				var userdet = result.rows[0];
-				res.render('userpage', {me: req.session.user, user: userdet, data: req.session.courses, portal: portal, notif: req.notifications});
+				res.render('userpage', {me: req.session.user, user: userdet, course_data: req.session.courses, portal: portal, notif: req.notifications});
 			}
 		});
 	});
@@ -171,7 +171,7 @@ exports.assignment_det = function(req, res){
 				client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
 					if(err) throw err;
 					if(assg_res.rows[0])
-						res.render('assignment_details', {me: req.session.user, data: req.session.courses, assgn_data: result.rows, loc: req.coursedet, notif: req.notifications, portal: 'assignments', role: 1, assg: assg_res.rows[0]});
+						res.render('assignment_details', {me: req.session.user, course_data: req.session.courses, assgn_data: result.rows, loc: req.coursedet, notif: req.notifications, portal: 'assignments', role: 1, assg: assg_res.rows[0]});
 				});
 			});
 		});
@@ -194,7 +194,7 @@ exports.comments = function(req, res){
 exports.profile = function(req, res){
 	var p = req.params.portal;
 	var user_id = req.session.user.user_id;
-	res.render('profile', {loc: 'profile', me: req.session.user, data: req.session.courses, portal: p, notif: req.notifications});
+	res.render('profile', {loc: 'profile', me: req.session.user, course_data: req.session.courses, portal: p, notif: req.notifications});
 };
 exports.editprofile = function(req, res){
 	var fn = req.body.fn;
@@ -387,7 +387,7 @@ exports.searchpage = function(req, res){
 			course_results = result.rows;
 			client.query(uq, function(err, ures){
 				if(err) throw err;
-				res.render('searchpage', {me: req.session.user, notif: req.notifications, query: qu, data: req.session.courses, qcourse: course_results, quser: ures.rows});
+				res.render('searchpage', {me: req.session.user, notif: req.notifications, query: qu, course_data: req.session.courses, qcourse: course_results, quser: ures.rows});
 			});
 		});
 	});
@@ -426,7 +426,7 @@ exports.person_interac = function(req, res){
 				}
 				else{
 					client.query('select id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am D,mon YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am D,mon YYYY\') as end_date, total_marks, submission_id, assignment_id, to_char(to_timestamp(submission_date), \'HH12:MM am D,mon YYYY\') as submission_date, user_id, filename, marks from assignments left join submissions on assignments.id = submissions.assignment_id and user_id = $1 where course_id = $2', [pid, cid], function(err, det){
-						res.render('person_interac', {me: req.session.user, notif: req.notifications, data: req.session.courses, user: result.rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
+						res.render('person_interac', {me: req.session.user, notif: req.notifications, course_data: req.session.courses, user: result.rows[0], contrib: det.rows, loc: req.coursedet, portal: 'people', role: 1});
 					});
 				}
 			});
