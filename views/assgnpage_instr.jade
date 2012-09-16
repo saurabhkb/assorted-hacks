@@ -130,7 +130,7 @@ block scripts
 							var com = JSON.parse(json);
 							if(com){
 								for(var i = 0; i < com.length; i++)
-									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-date'>" + new Date(com[i].time * 1000).toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-date'>" + new Date(com[i].time * 1000).toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
 							}
 						});
 						return false;
@@ -143,7 +143,7 @@ block scripts
 						var target = $(this).siblings("#user_id").val();
 						var aid = $("#comments-window #assgn_id").val();
 						if(cmment){
-							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-date'>" + new Date().toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-date'>" + new Date().toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
 							comm_sock.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: aid}));
 						}
 						$("#comment-box").val("");
@@ -247,7 +247,7 @@ block maincontent
 		if assgns.length == 0
 			div(style="margin: 0px auto; color: rgb(100, 100, 100); width: 10em; padding: 40px; text-align: center;")#no-assgn no assignments
 		#load-assgn
-			img(src="/images/loader.gif")
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
 		each assg in assgns
 			.assgnmnt-wrap
 				table(style="width: 100%")
@@ -255,11 +255,11 @@ block maincontent
 						if role == 0
 							td(style="width: 7em; text-align: center")
 								if assg.filename == null
-									img(src="/images/pending.jpg", title="pending")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/pending.jpg", title="pending")
 								else if assg.submission_date < assg.end_date
-									img(src="/images/greentick.png", title="submitted on time")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/greentick.png", title="submitted on time")
 								else if assg.submission_date > assg.end_date
-									img(src="/images/redtick.jpg", title="submitted late")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/redtick.jpg", title="submitted late")
 						td(style="width: 25em;")
 							a(href="").assgn-link
 								.assgnmnt(id="#{assg.id}")
@@ -291,7 +291,7 @@ block maincontent
 									td(style="width: 4em;")
 										.comments(id="#{assg.id}")
 											a(href="")
-												img(src="/images/chat.png", style="width: 30px", title="comments")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/chat.png", style="width: 30px", title="comments")
 									td(style="width: 6em;")
 										.grade
 											if assg.marks == null
@@ -308,12 +308,12 @@ block maincontent
 							td(style="width: 4em; font-size: 0.9em; color: gray;")
 								.assgn-opt#edit-opt(style="border-left: thin solid")
 									a(href="#", style="margin: 0 10px;").edit-assgn-btn
-										img(src="/images/edit.png", style="width: 20px;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/edit.png", style="width: 20px;")
 									a(href="#", style="margin: 0 10px;").kill-event
-										img(src="/images/close.png", style="width: 20px;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/close.png", style="width: 20px;")
 	#assgn-details.modal-window
 		#loading
-			img(src="/images/loader.gif")
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
 		.modal-content
 			#det-assgn-content(style="color: black; font-size: 0.9em;")
 	#submit-assgn-window.modal-window
