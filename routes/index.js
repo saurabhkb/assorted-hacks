@@ -166,9 +166,9 @@ exports.assignment_det = function(req, res){
 	else{
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
-			client.query('select first_name, last_name, T.user_id, img_id, submission_id, to_char(to_timestamp(submission_date), \'HH12:MM AM DD month YYYY\'), filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = $1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
+			client.query('select first_name, last_name, T.user_id, img_id, submission_id, to_char(to_timestamp(submission_date), \'HH12:MM am DD, month YYYY\') as submission_date, filename from (select "user".* from user_course inner join "user" on user_course.user_id = "user".user_id where course_id = $1 and role = 0) as T left join submissions on T.user_id = submissions.user_id and (assignment_id = $2 or assignment_id is null)', [course_id, a_id], function(err, result){
 				if(err) throw err;
-				client.query('SELECT * FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
+				client.query('SELECT id, course_id, assignment_title, assignment_content, to_char(to_timestamp(start_date), \'HH12:MM am DD, month YYYY\') as start_date, to_char(to_timestamp(end_date), \'HH12:MM am DD, month YYYY\') as end_date, total_marks FROM assignments WHERE id = $1', [a_id], function(err, assg_res){
 					if(err) throw err;
 					if(assg_res.rows[0])
 						res.render('assignment_details', {me: req.session.user, course_data: req.session.courses, assgn_data: result.rows, loc: req.coursedet, notif: req.notifications, portal: 'assignments', role: 1, assg: assg_res.rows[0]});
