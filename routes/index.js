@@ -4,7 +4,7 @@
 
 exports.index = function(req, res){
 	console.log("IM IN!==================================================>");
-	res.render('index', { title: 'Radiant Sky' })
+	res.render('index', { title: 'Radiant Sky' });
 };
 
 exports.home = function(req, res){
