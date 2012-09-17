@@ -3,6 +3,7 @@
  */
 
 exports.index = function(req, res){
+	console.log("IM IN!==================================================>");
 	res.render('index', { title: 'Radiant Sky' })
 };
 
