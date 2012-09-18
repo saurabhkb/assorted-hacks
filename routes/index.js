@@ -163,7 +163,7 @@ exports.assignment_det = function(req, res){
 	var course_id = req.params.course_id;
 	var a_id = req.params.a_id;
 	if(req.coursedet.role != 1)
-		res.send('You are not the instructor of this course. You do not have sufficient privileges to view this page!');
+		res.render('permission');
 	else{
 		pg.connect(conString, function(err, client){
 			if(err) throw err;
@@ -415,7 +415,7 @@ exports.person_interac = function(req, res){
 	var cid = req.params.course_id;
 	var pid = req.params.person_id;
 	if(req.coursedet.role != 1){
-		res.send('You are not an instructor of this course! You do not have sufficient permissions to view this page!');
+		res.render('permission');
 	}
 	else{
 		pg.connect(conString, function(err, client){
@@ -464,7 +464,7 @@ exports.joincourse = function(req, res){
 
 exports.course_edit = function(req, res){
 	if(req.coursedet.role != 1){
-		res.send('You are not an instructor of this course! You do not have permission to alter the course settings!');
+		res.render('permission');
 		return;
 	}
 	var cid = req.params.course_id;
