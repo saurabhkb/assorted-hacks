@@ -20,19 +20,6 @@ html
 					$(".modal-window").dialog({autoOpen: false, minWidth: 100, minHeight: 100, modal: true, resizable: false, draggable: false});
 					addNavigJs(io);
 					$("#join-course-a").click(function(e){e.preventDefault(); $(".join-course-div").toggle();});
-					$("#join-course-inp").focus(
-						function(){
-							if($(this).val() == "enter course key")
-								$(this).val("");
-						}
-					);
-					$("#join-course-inp").blur(
-						function(){
-							if($(this).val() == "" || $(this).val().trim() == ""){
-								$(this).val("enter course key");
-							}
-						}
-					);
 					$("#join-course-btn").click(
 						function(e){
 							e.preventDefault();
@@ -160,7 +147,7 @@ html
 								a(href="#")#join-course-a Join a Course
 							.join-course-div
 								form(action="")
-									input(type="text", value="enter course key", autocomplete="off")#join-course-inp.textinput
+									input(type="text", placeholder="enter course key", autocomplete="off")#join-course-inp.textinput
 									button(style="padding: 3px 4px 4px 4px; margin-left: 2px;")#join-course-btn.green-btn go
 									.join-course-load(style="position: absolute; right: 57px; top: 69px; display: none;")
 										img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", style="width: 20px;")
