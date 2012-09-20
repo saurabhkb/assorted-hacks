@@ -20,11 +20,12 @@ block body
 								a(href="/courses/#{loc.course_id}/assignments").selected-course-navig-link Assignments
 							else
 								a(href="/courses/#{loc.course_id}/assignments") Assignments
-						td
-							if portal == "calendar"
-								a(href="/courses/#{loc.course_id}/calendar").selected-course-navig-link Calendar
-							else
-								a(href="/courses/#{loc.course_id}/calendar") Calendar
+						//
+							td
+								if portal == "calendar"
+									a(href="/courses/#{loc.course_id}/calendar").selected-course-navig-link Calendar
+								else
+									a(href="/courses/#{loc.course_id}/calendar") Calendar
 						td
 							if portal == "people"
 								a(href="/courses/#{loc.course_id}/people").selected-course-navig-link People
