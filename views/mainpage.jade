@@ -93,7 +93,7 @@ block maincontent
 				input(type="submit", value="post", tabindex=2)#post-button.button post
 		#stream
 			#loading
-				img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", alt="loading...")
+				img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif", alt="loading...")
 			if portal == "main" || portal == ""
 				each post in prev_posts
 					a(name="#{post.id}")
@@ -103,7 +103,7 @@ block maincontent
 									td(style="padding-right: 20px")
 										.post-author-img
 											a(href="/user/#{post.user_id}/home/")
-												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{post.img_id}", title="#{post.first_name} #{post.last_name}")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/post/#{post.img_id}", title="#{post.first_name} #{post.last_name}")
 									td(style="width: 57em;")
 										.post-author
 											a(href="/user/#{post.user_id}/home/") #{post.first_name} #{post.last_name}
@@ -111,7 +111,7 @@ block maincontent
 										.post-content #{post.post_content}
 									td
 										.comment-opt
-											img(src="https://s3.amazonaws.com/radiant-sky/public/images/bubble.png")
+											img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/bubble.png")
 								tr
 									td
 									td
@@ -120,5 +120,5 @@ block maincontent
 											.reply-add-box
 												input(type="text").reply-text.textinput
 												button.button(style="padding: 5px 10px 2px 10px;").add-reply-btn
-													img(src="https://s3.amazonaws.com/radiant-sky/public/images/next1.png", style="opacity: 0.4")
+													img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/next1.png", style="opacity: 0.4")
 

@@ -57,7 +57,7 @@ html
 					form(action="/search/", method="get")
 						input(type="text", name="q", size="40", autocomplete="off")#search-txtbox.textinput
 						button(style="padding: 3px 14px 0px 14px; margin-left: 3px;")#search-btn.button
-							img(src="https://s3.amazonaws.com/radiant-sky/public/images/search1.png")
+							img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/search1.png")
 				-var right = 10
 				#user-opt-box
 					.user-opt-box-unit(style="right: #{right + 60 + 110 + 80 + 80 + 10}px; top: 0px;")
@@ -81,7 +81,7 @@ html
 												td
 													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
 														.img
-															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{notification.img_id}", style="width: 50px;")
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
 													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} posted in
@@ -93,7 +93,7 @@ html
 												td
 													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
 														.img
-															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{notification.img_id}", style="width: 50px;")
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
 													a(href="/courses/#{notification.course_id}/assignments##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
@@ -105,7 +105,7 @@ html
 												td
 													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
 														.img
-															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{notification.img_id}", style="width: 50px;")
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
 													a(href="/courses/#{notification.course_id}/resources##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} added a resource in
@@ -150,7 +150,7 @@ html
 									input(type="text", placeholder="enter course key", autocomplete="off")#join-course-inp.textinput
 									button(style="padding: 3px 4px 4px 4px; margin-left: 2px;")#join-course-btn.green-btn go
 									.join-course-load(style="position: absolute; right: 57px; top: 69px; display: none;")
-										img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", style="width: 20px;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif")
 								.bubble-course-elem#join-course-result(style="color: white;")
 						.action-bubble-arrow-border
 						.action-bubble-arrow

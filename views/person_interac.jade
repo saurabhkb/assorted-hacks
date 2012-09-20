@@ -99,7 +99,7 @@ block maincontent
 			tr
 				td
 					a(href="/user/#{user.user_id}/")
-						img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/#{user.img_id}", style="width: 60px; border-radius: 3px;")
+						img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/post/#{user.img_id}", style="border-radius: 3px;")
 				td(style="padding-left: 20px;")
 					a(href="/user/#{user.user_id}/")
 						#{user.first_name} #{user.last_name}
@@ -142,7 +142,7 @@ block maincontent
 						td(style="width: 5em; text-align: center")
 							.comments
 								a(href="#")
-									img(src="https://s3.amazonaws.com/radiant-sky/public/images/chat.png", style="width: 30px;", title="comments")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/chat.png", title="comments")
 						td(style="width: 7em;")
 							-if(c.marks == null)
 								.grade(style="opacity: 0.5")
@@ -174,12 +174,12 @@ block maincontent
 												span.outof #{c.total_marks}
 											td
 												span
-													img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif", style="width: 18px; display: none; margin-left: 5px;").loader
+													img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif", style="display: none; margin-left: 5px;").loader
 
 
 	#assgn-details.modal-window
 		#loading
-			img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
 		.modal-content
 			#det-assgn-content(style="color: black; font-size: 0.9em;")
 

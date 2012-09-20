@@ -247,7 +247,7 @@ block maincontent
 		if assgns.length == 0
 			div(style="margin: 0px auto; color: rgb(100, 100, 100); width: 10em; padding: 40px; text-align: center;")#no-assgn no assignments
 		#load-assgn
-			img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
 		each assg in assgns
 			.assgnmnt-wrap
 				table(style="width: 100%")
@@ -255,11 +255,11 @@ block maincontent
 						if role == 0
 							td(style="width: 7em; text-align: center")
 								if assg.filename == null
-									img(src="https://s3.amazonaws.com/radiant-sky/public/images/pending.jpg", title="pending")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/pending.jpg", title="pending")
 								else if assg.submission_date < assg.end_date
-									img(src="https://s3.amazonaws.com/radiant-sky/public/images/greentick.png", title="submitted on time")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/greentick.png", title="submitted on time")
 								else if assg.submission_date > assg.end_date
-									img(src="https://s3.amazonaws.com/radiant-sky/public/images/redtick.jpg", title="submitted late")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/redtick.jpg", title="submitted late")
 						td(style="width: 25em;")
 							a(href="").assgn-link
 								.assgnmnt(id="#{assg.id}")
@@ -291,7 +291,7 @@ block maincontent
 									td(style="width: 4em;")
 										.comments(id="#{assg.id}")
 											a(href="")
-												img(src="https://s3.amazonaws.com/radiant-sky/public/images/chat.png", style="width: 30px", title="comments")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/chat.png", style="width: 30px", title="comments")
 									td(style="width: 6em;")
 										.grade
 											if assg.marks == null
@@ -308,12 +308,12 @@ block maincontent
 							td(style="width: 4em; font-size: 0.9em; color: gray;")
 								.assgn-opt#edit-opt(style="border-left: thin solid")
 									a(href="#", style="margin: 0 10px;").edit-assgn-btn
-										img(src="https://s3.amazonaws.com/radiant-sky/public/images/edit.png", style="width: 20px;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/edit.png", style="width: 20px;")
 									a(href="#", style="margin: 0 10px;").kill-event
-										img(src="https://s3.amazonaws.com/radiant-sky/public/images/close.png", style="width: 20px;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/close.png", style="width: 20px;")
 	#assgn-details.modal-window
 		#loading
-			img(src="https://s3.amazonaws.com/radiant-sky/public/images/loader.gif")
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
 		.modal-content
 			#det-assgn-content(style="color: black; font-size: 0.9em;")
 	#submit-assgn-window.modal-window
