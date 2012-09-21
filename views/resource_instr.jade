@@ -14,19 +14,6 @@ block scripts
 					}
 				);
 				$("#tabs").tabs();
-				$(".msg").css("color", "gray")
-				$(".msg").focus(
-					function(){
-						$(this).val("");
-						$(this).css("color", "black");
-					}
-				);
-				$(".msg").blur(
-					function(){
-						if($(this).val() == "")
-							$(this).css("color", "gray");
-					}
-				);
 				$("#submit-res").click(
 					function(e){
 						if(!$("#upload_file").val() && ($("#vid_embed").val() == "Link to the Video" || $("#vid_embed").val() == "")  && ($("#link_url").val() == "URL of Link" || $("#link_url").val() == ""))
@@ -59,21 +46,21 @@ block maincontent
 							p
 								input(type="file", name="upload_file")#upload_file
 							p
-								textarea(name="upload_file_expln").textinput.msg explain the resource
+								textarea(name="upload_file_expln", placeholder="Explain the Resource").textinput
 						#tabs-2
 							.modal-subtitle Embed a Video
 							p
-								input(type="text", value="Link to the Video", name="embed_video")#vid_embed.textinput.msg
+								input(type="text", placeholder="Link to the Video", name="embed_video")#vid_embed.textinput
 							p
-								textarea(name="embed_video_expln").textinput.msg explain the resource
+								textarea(name="embed_video_expln", placeholder="Explain the Resource").textinput
 						#tabs-3
 							.modal-subtitle Add a Link
 							p
-								input(type="text", value="Name of Link", name="add_link")#link_name.textinput.msg
+								input(type="text", placeholder="Name of Link", name="add_link")#link_name.textinput.msg
 							p
-								input(type="text", value="URL of Link", name="add_link_url")#link_url.textinput.msg 
+								input(type="text", placeholder="URL of Link", name="add_link_url")#link_url.textinput.msg 
 							p
-								textarea(name="add_link_expln").textinput.msg explain the resource
+								textarea(name="add_link_expln", placeholder="Explain the Resource").textinput
 					p
 						input(type="submit", value="done")#submit-res.button
 						input(type="submit", value="cancel", style="margin-left: 10px;").cancel.button

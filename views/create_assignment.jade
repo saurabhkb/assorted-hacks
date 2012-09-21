@@ -46,7 +46,7 @@ block scripts
 				$("#create-btn").click(
 					function(e){
 						e.preventDefault();
-						socket.emit("assignment", JSON.stringify({assgn_title: $("#assgn-title").val(), assgn_content: $("#assgn-content").val(), sdate: $("#start-date").val(), edate: $("#end-date").val(), course_id: #{loc.course_id}});
+						socket.emit("assignment", JSON.stringify({assgn_title: $("#assgn-title").val(), assgn_content: $("#assgn-content").val(), sdate: $("#start-date").val(), edate: $("#end-date").val(), course_id: #{loc.course_id}}));
 						$("#create-form").hide();
 						$(".done-table").show();
 					}
