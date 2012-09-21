@@ -79,11 +79,11 @@ html
 										table
 											tr
 												td
-													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
 														.img
 															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
-													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} posted in
 															span.notif-course #{notification.course_name}
 															div.notif-event-date #{notification.timestamp}
@@ -91,11 +91,11 @@ html
 										table
 											tr
 												td
-													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
 														.img
 															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
-													a(href="/courses/#{notification.course_id}/assignments##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/assignments/##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
 															span.notif-course #{notification.course_name}
 															div.notif-event-date #{notification.timestamp}
@@ -103,11 +103,11 @@ html
 										table
 											tr
 												td
-													a(href="/courses/#{notification.course_id}/main##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
 														.img
 															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
 												td
-													a(href="/courses/#{notification.course_id}/resources##{notification.reference}")
+													a(href="/courses/#{notification.course_id}/resources/##{notification.reference}")
 														.notif-content #{notification.first_name} #{notification.last_name} added a resource in
 															span.notif-course #{notification.course_name}
 															div.notif-event-date #{notification.timestamp}
@@ -164,7 +164,7 @@ html
 						each course in course_data
 							.bubble-course-elem
 								.bubble-course-elem-title
-									a(href="/courses/#{course.course_id}/main") #{course.course_name}
+									a(href="/courses/#{course.course_id}/main/") #{course.course_name}
 									span.bubble-course-id #{course.course_label}
 						.bubble-arrow-border
 						.bubble-arrow
