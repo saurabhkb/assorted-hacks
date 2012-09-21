@@ -1,0 +1,43 @@
+html
+	head
+		title Teachfruit | Insufficient Permissions
+		link(rel="icon", type="image/png", href="https://s3.amazonaws.com/radiant-sky/public/images/tf2.png")
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/userpage.css')
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/html-elem.css')
+		script(src='https://s3.amazonaws.com/radiant-sky/public/javascripts/jquery-1.7.2.min.js')
+		style.
+			body{font-family: sans-serif;background-image: url(https://s3.amazonaws.com/radiant-sky/public/images/bg.png); background-repeat: no-repeat; background-size: cover; background-position: 0 -100px;}
+			a{text-decoration: none; color: #0bf;}
+			a:HOVER{text-decoration: underline;}
+			td, tr, .opt{vertical-align: middle;}
+		script.
+			$(document).ready(
+				function(){
+					$("#back").click(
+						function(e){
+							e.preventDefault();
+							history.go(-1);
+						}
+					);
+				}
+			);
+	body
+		#header
+			#site-title-mini
+				a(href="/user/home") Teachfruit
+		.space(style="height: 120px;")
+		.banner.maincol-content(style="width: 550px;")
+			.error-message(style="width: 500px; margin: 0px auto;")
+				.error-number(style="color: black; font-size: 2em; font-weight: bold;") 503
+				.not-found-text(style="color: maroon; font-size: 1.3em") Insufficient Permission
+				.expln(style="color: gray; font-size: 0.9em;  margin-top: 7px;") You are not authorized to view this page!
+				table
+					tr
+						td
+							.opt
+								a(href="/user/home") Home
+						td
+							.opt(style="margin: 20px 20px; color: rgb(70, 70, 70); margin-top: 12px;") 
+						td
+							.opt
+								a(href="")#back Back
