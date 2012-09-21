@@ -277,6 +277,13 @@ exports.extraoptions = function(req, res){
 	var course_id = req.params.course_id;
 	var portal = req.params.portal;
 	var option = req.params.option;
+	if(option == "create" && portal == "assignments"){
+		if(req.coursedet.role != 1){
+			res.render('permission');
+		}else{
+			res.render("create_assignment", {notif: req.notifications, data: req.session.courses, me: req.session.user, role: 1, loc: req.coursedet, portal: "assignments"});
+		}
+	}
 	if(option == 'details' && portal == 'assignments')
 	{
 		var id = req.body.id;

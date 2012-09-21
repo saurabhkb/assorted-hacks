@@ -1,0 +1,108 @@
+extends course_skeleton
+block styles
+	link(href="https://s3.amazonaws.com/radiant-sky/public/stylesheets/base.css", rel="stylesheet")
+	link(href="https://s3.amazonaws.com/radiant-sky/public/stylesheets/clean.css", rel="stylesheet")
+	style.
+		#end-date-text, #start-date-text, #span{color: gray; font-size: 0.8em;}
+block scripts
+	script(src="https://s3.amazonaws.com/radiant-sky/public/javascripts/datepicker.js")
+	script.
+		$(document).ready(
+			function(){
+				var t = 0;
+				var socket = io.connect('/assignments');
+				$("#calendar-container").DatePicker({
+					inline: true,
+					mode: "range",
+					date: new Date(),
+					onChange: function(range){
+						if(t % 2 == 0){
+							$("#start-date-text").text("");
+							$("#end-date-text").text("");
+							$("#span").text("");
+							$("#start-date").val("");
+							$("#end-date").val("");
+							var d = new Date(range[0]);
+							$("#start-date-text").text(d.toDateString());
+							$("#start-date").val(d.getTime());
+							t += 1;
+						}else if(t % 2 == 1){
+							var d1 = new Date(range[0])
+							var d2 = new Date(range[1])
+							$("#end-date-text").text(d2.toDateString());
+							$("#end-date").val(d2.getTime());
+							t += 1;
+							$("#span").text(Math.round((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24)) + " days");
+						}
+					}
+				});
+				$("#clear-datepicker").click(function(e){
+					e.preventDefault();
+					$("#calendar-container").DatePickerClear();
+					$("#start-date").text("");
+					$("#end-date").text("");
+					$("#span").text("");
+				});
+				$("#create-btn").click(
+					function(e){
+						e.preventDefault();
+						socket.emit("assignment", JSON.stringify({assgn_title: $("#assgn-title").val(), assgn_content: $("#assgn-content").val(), sdate: $("#start-date").val(), edate: $("#end-date").val(), course_id: #{loc.course_id}});
+						$("#create-form").hide();
+						$(".done-table").show();
+					}
+				);
+			});
+block maincontent
+	#maincol-content
+		#buffer(style="height: 5em;")
+		#form.maincol-content
+			#title(style="text-align: center;letter-spacing: 1px; font-size: 1.3em") Create Assignment
+			form#create-form
+				table(style="border-collapse: separate; border-spacing: 0 20px;")
+					tr
+						td
+							.fieldname Assignment Name
+						td
+							input(type="text", style="width: 40em;")#assgn-title.textinput
+					tr
+						td
+							.fieldname Assignment Description
+						td
+							textarea(style="width: 40em; height: 10em;")#assg-content.textinput
+					tr
+						td
+							.fieldname Dates
+						td
+							#calendar-container
+						td
+							#calendar-info
+								table(style="border-collapse: separate; border-spacing: 4px;")
+									tr
+										td
+											.fieldname Start Date:
+										td
+											#start-date-text
+											input(type="hidden")#start-date
+									tr
+										td
+											.fieldname End Date:
+										td
+											#end-date-text
+											input(type="hidden")#end-date
+									tr
+										td
+											.fieldname Span:
+										td
+											#span
+									tr
+										td
+											a(href="", style="padding: 0 15px 0 3px; font-size: 0.8em;")#clear-datepicker Clear
+					tr
+						td
+							input(type="submit", value="create").button
+			table(style="border-collapse: separate; border-spacing: 10px; margin: 0px auto; margin-top: 20px;").done
+				tr
+					td
+						a(href="./", style="display: none; font-size: 13px;").done.button create another assignment
+					td
+						a(href="../", style="display: none; font-size: 13px;").done.button done, take me back

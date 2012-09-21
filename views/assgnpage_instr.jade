@@ -17,13 +17,6 @@ block scripts
 				$("#edit-assgn-modal #start-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
 				$("#edit-assgn-modal #end-date").datetimepicker({ampm: true, dateFormat: "d MM, yy"});
 				$("#radio").buttonset();
-				$("#create-assgn-btn").click(
-					function(){
-						$("#assgn-modal").dialog("open");
-						$("#assgn-modal").dialog("option", "title", "Create Assignment");
-						$("#assgn-modal").dialog("option", "width", 500);
-					}
-				);
 				$(".edit-assgn-btn").click(
 					function(){
 						var id = $(this).parents(".assgnmnt-wrap").find(".assgnmnt").attr("id");
@@ -159,48 +152,8 @@ block styles
 block maincontent
 	if(role == 1)
 		#create-assgn
-			button(style="padding: 5px 10px")#create-assgn-btn.green-btn Create an Assignment
-		#assgn-modal.modal-window
-			.modal-content
-				form(action="")
-					table
-						tr
-							td
-								.fieldname Assignment Name
-							td
-								input(type="text")#assgn-title.forminput.textinput
-						tr
-							td
-								.fieldname Assignment Description
-							td
-								textarea(rows="7")#assgn-content.forminput.textinput
-						tr
-							td
-								.fieldname Start Date
-							td
-								input(type="text")#start-date.forminput.textinput
-						tr
-							td
-								.fieldname End Date
-							td
-								input(type="text")#end-date.forminput.textinput
-						//
-							tr
-								td
-									.fieldname(style="margin-bottom: 0") Expected
-								td
-									#radio
-										input(type="radio", name="upload", id="yes")
-										label(for="yes")
-											|Submission expected
-										input(type="radio", name="upload", id="no")
-										label(for="no")
-											|No submission expected
-						tr
-							td
-								input(type="submit", value="create")#submit-assgn-btn.button
-							td
-								button.cancel.button cancel
+			form(action="./create/")
+				button(style="padding: 5px 10px")#create-assgn-btn.green-btn Create an Assignment
 		#edit-assgn-modal.modal-window
 			.modal-content
 				form(action="", method="post")
@@ -245,7 +198,7 @@ block maincontent
 
 	#assgn-list.maincol-content
 		if assgns.length == 0
-			div(style="margin: 0px auto; color: rgb(100, 100, 100); width: 10em; padding: 40px; text-align: center;")#no-assgn no assignments
+			div(style="margin: 0px auto; color: rgb(100, 100, 100); width: 10em; text-align: center;")#no-assgn no assignments
 		#load-assgn
 			img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
 		each assg in assgns

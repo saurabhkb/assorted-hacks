@@ -12,35 +12,35 @@ block body
 					tr
 						td
 							if portal == "main" || portal == ""
-								a(href="/courses/#{loc.course_id}/main").selected-course-navig-link Stream
+								a(href="/courses/#{loc.course_id}/main/").selected-course-navig-link Stream
 							else
-								a(href="/courses/#{loc.course_id}/main") Stream
+								a(href="/courses/#{loc.course_id}/main/") Stream
 						td
 							if portal == "assignments"
-								a(href="/courses/#{loc.course_id}/assignments").selected-course-navig-link Assignments
+								a(href="/courses/#{loc.course_id}/assignments/").selected-course-navig-link Assignments
 							else
-								a(href="/courses/#{loc.course_id}/assignments") Assignments
+								a(href="/courses/#{loc.course_id}/assignments/") Assignments
 						//
 							td
 								if portal == "calendar"
-									a(href="/courses/#{loc.course_id}/calendar").selected-course-navig-link Calendar
+									a(href="/courses/#{loc.course_id}/calendar/").selected-course-navig-link Calendar
 								else
-									a(href="/courses/#{loc.course_id}/calendar") Calendar
+									a(href="/courses/#{loc.course_id}/calendar/") Calendar
 						td
 							if portal == "people"
-								a(href="/courses/#{loc.course_id}/people").selected-course-navig-link People
+								a(href="/courses/#{loc.course_id}/people/").selected-course-navig-link People
 							else
-								a(href="/courses/#{loc.course_id}/people") People
+								a(href="/courses/#{loc.course_id}/people/") People
 						td
 							if portal == "resources"
-								a(href="/courses/#{loc.course_id}/resources").selected-course-navig-link Resources
+								a(href="/courses/#{loc.course_id}/resources/").selected-course-navig-link Resources
 							else
-								a(href="/courses/#{loc.course_id}/resources") Resources
+								a(href="/courses/#{loc.course_id}/resources/") Resources
 						if role == 1
 							td
 								if portal == "admin"
-									a(href="/courses/#{loc.course_id}/admin").selected-course-navig-link Admin
+									a(href="/courses/#{loc.course_id}/admin/").selected-course-navig-link Admin
 								else
-									a(href="/courses/#{loc.course_id}/admin") Admin
+									a(href="/courses/#{loc.course_id}/admin/") Admin
 	#maincontent
 		block maincontent
