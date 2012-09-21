@@ -3,7 +3,6 @@
  */
 
 exports.index = function(req, res){
-	console.log("IM IN!==================================================>");
 	res.render('index', { title: 'Radiant Sky' });
 };
 
@@ -277,6 +276,7 @@ exports.extraoptions = function(req, res){
 	var course_id = req.params.course_id;
 	var portal = req.params.portal;
 	var option = req.params.option;
+	console.log("portal + option: " + portal + ", " + option);
 	if(option == "create" && portal == "assignments"){
 		if(req.coursedet.role != 1){
 			res.render('permission');
@@ -284,7 +284,7 @@ exports.extraoptions = function(req, res){
 			res.render("create_assignment", {notif: req.notifications, data: req.session.courses, me: req.session.user, role: 1, loc: req.coursedet, portal: "assignments"});
 		}
 	}
-	if(option == 'details' && portal == 'assignments')
+	else if(option == 'details' && portal == 'assignments')
 	{
 		var id = req.body.id;
 		pg.connect(conString, function(err, client){
@@ -380,7 +380,7 @@ exports.extraoptions = function(req, res){
 			});
 		}
 	}
-
+	else res.redirect("/courses/" + req.params.course_id + "/main/");
 }
 
 exports.searchpage = function(req, res){
