@@ -281,7 +281,7 @@ exports.extraoptions = function(req, res){
 		if(req.coursedet.role != 1){
 			res.render('permission');
 		}else{
-			res.render("create_assignment", {notif: req.notifications, data: req.session.courses, me: req.session.user, role: 1, loc: req.coursedet, portal: "assignments"});
+			res.render("create_assignment", {notif: req.notifications, course_data: req.session.courses, me: req.session.user, role: 1, loc: req.coursedet, portal: "assignments"});
 		}
 	}
 	else if(option == 'details' && portal == 'assignments')
