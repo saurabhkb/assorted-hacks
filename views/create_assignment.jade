@@ -39,8 +39,10 @@ block scripts
 				$("#clear-datepicker").click(function(e){
 					e.preventDefault();
 					$("#calendar-container").DatePickerClear();
-					$("#start-date").text("");
-					$("#end-date").text("");
+					$("#start-date-text").text("");
+					$("#end-date-text").text("");
+					$("#start-date").val("");
+					$("#end-date").val("");
 					$("#span").text("");
 				});
 				$("#create-btn").click(
@@ -58,7 +60,7 @@ block maincontent
 		#form.maincol-content
 			#title(style="text-align: center;letter-spacing: 1px; font-size: 1.3em") Create Assignment
 			form#create-form
-				table(style="border-collapse: separate; border-spacing: 0 20px;")
+				table(style="border-collapse: separate; border-spacing: 0 20px; margin: 0px auto; margin-top: 10px;")
 					tr
 						td
 							.fieldname Assignment Name
