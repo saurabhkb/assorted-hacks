@@ -38,12 +38,22 @@ block scripts
 					function(){
 						var id = $(this).parents(".assgnmnt-wrap").find(".assgnmnt").attr("id");
 						var title = $(this).parents(".assgnmnt-wrap").find(".assgnmnt-title").text();
+						$("#kill-assgn-modal #kill-id").val(id);
 						$("#kill-assgn-modal").dialog("open");
 						$("#kill-assgn-modal").dialog("option", "title", title);
-						$("#kill-assgn-modal").dialog("option", "width", 300);
-						$("#kill-assgn-modal").dialog("option", "height", 150);
+						$("#kill-assgn-modal").dialog("option", "width", 450);
+						$("#kill-assgn-modal").dialog("option", "height", 240);
 						$("#kill-assgn-modal").dialog("option", "draggable", false);
 						$("#kill-assgn-modal").dialog("option", "resizable", false);
+					}
+				);
+
+				$("#kill-yes").click(
+					function(){
+						var id = $("#kill-assgn-modal").find("#kill-id").val();
+						var x = ".assgnmnt" + "#" + id;
+						$(x).parents(".assgnmnt-wrap").remove();
+						$.post("/courses/#{loc.course_id}/assignments/delete", {id: id}, function(){});
 					}
 				);
 
@@ -299,8 +309,18 @@ block maincontent
 					br
 					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button
 	#kill-assgn-modal.modal-window
+		input(type="hidden", value="")#kill-id
 		.modal-content
-			.doublecheck Are you sure you want to delete this assignment?
+			.ui-state-error.ui-corner-all(style="padding: 0 0.7em;")
+				p(style="margin: 10px;")
+					.ui-icon.ui-icon-alert(style="margin-right: 0.3em;")
+					.doublecheck(style="font-size: 0.9em;")
+						|Are you sure you want to delete this assignment?
+						div This action will:
+						ol(style="list-style: decimal; font-size: 0.88em; margin: 1px;")
+							li delete all associated comments
+							li delete all associated student submissions and grades
+						|This action cannot be undone!
 			p
-			button.button#kill-yes yes
 			button(style="margin-left: 10px;").button.cancel no
+			button.button.cancel#kill-yes yes

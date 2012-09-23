@@ -201,11 +201,12 @@ exports.editprofile = function(req, res){
 	var ln = req.body.ln;
 	var emid = req.body.emid;
 	var bgimg = req.files.img || '';
+	console.log(bgimg);
 	req.session.user.first_name = fn;
 	req.session.user.last_name = ln;
 	req.session.email_id = emid;
 	var file_upload = false;
-	var id = genId(30);
+	var id = genId(20);
 	var name = '';
 	if(bgimg && bgimg.size && bgimg.filename && bgimg.name){
 		var ext = bgimg.type;
@@ -232,6 +233,7 @@ exports.editprofile = function(req, res){
 			fs.rename(tmp_path, target_path, function(err){if(err) throw err;});
 			file_upload = true;
 			name = id + '.' + type;
+			console.log("NAME: " + name);
 		}else{
 			res.send('Image must be png, jpeg, jclient, gif or svg');
 			return;
@@ -262,12 +264,12 @@ exports.update_mks = function(req, res){
 	var mks = req.body.mks;
 	pg.connect(conString, function(err, client){
 		if(err) throw err;
-		client.query("SELECT * FROM `assignments` WHERE `id` = ?", [aid], function(err, rows, fields){
+		client.query("SELECT * FROM `assignments` WHERE `id` = $1", [aid], function(err, rows, fields){
 			if(err) throw err;
 			if(rows.length != 1) res.send("0");
 			console.log(rows);
 			if(mks && mks != "" && mks.trim() != "" && isNaN(mks) == false && mks <= parseInt(rows[0].total_marks)){
-				connection.query("UPDATE `submissions` SET `marks` = ? WHERE `assignment_id` = ? AND `user_id` = ?", [mks, aid, uid], function(err, rows, fields){if(err) throw err; console.log("fjdkls");res.send("1");});
+				connection.query("UPDATE `submissions` SET `marks` = $1 WHERE `assignment_id` = $2 AND `user_id` = $3", [mks, aid, uid], function(err, rows, fields){if(err) throw err; res.send("1");});
 			}else res.send("0");
 		});
 	});
@@ -276,12 +278,32 @@ exports.extraoptions = function(req, res){
 	var course_id = req.params.course_id;
 	var portal = req.params.portal;
 	var option = req.params.option;
-	console.log("portal + option: " + portal + ", " + option);
 	if(option == "create" && portal == "assignments"){
 		if(req.coursedet.role != 1){
 			res.render('permission');
 		}else{
 			res.render("create_assignment", {notif: req.notifications, course_data: req.session.courses, me: req.session.user, role: 1, loc: req.coursedet, portal: "assignments"});
+		}
+	}
+	else if(option == "delete" && portal == "assignments")
+	{
+		if(req.coursedet.role != 1) res.send("-1");
+		else{
+			var id = req.body.id;
+			if(!id || id == "" || parseInt(id) == Nan || id < 0) res.send("-1");
+			pg.connect(conString, function(err, client){
+				if(err) throw err;
+				client.query("DELETE FROM `assignments` WHERE `id` = $1", [id], function(err, rows, fields){
+					if(err) throw err;
+					connection.query("DELETE FROM `a_comments` WHERE `assignment_id` = $1", [id], function(err, rows, fields){
+						if(err) throw err;
+						connection.query("DELETE FROM `submissions` WHERE `assignment_id` = $1", [id], function(err, rows, fields){
+							if(err) throw err;
+							res.send("0");
+						});
+					});
+				});
+			});
 		}
 	}
 	else if(option == 'details' && portal == 'assignments')
@@ -415,7 +437,7 @@ exports.notif = function(req, res){
 			});
 		});
 		res.send("1");
-	}
+	}else res.send("0");
 }
 
 exports.person_interac = function(req, res){
