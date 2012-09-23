@@ -216,7 +216,7 @@ exports.editprofile = function(req, res){
 				type = 'png';
 				break;
 			case 'image/jpeg':
-				type = 'jclient';
+				type = 'jpg';
 				break;
 			case 'image/gif':
 				type = 'gif';
