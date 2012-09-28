@@ -226,13 +226,32 @@ exports.editprofile = function(req, res){
 				break;
 		}
 		if(type != ''){
-			var fs = require('fs');
 			var tmp_path = bgimg.path;
-			req.session.user.img_id = id + '.' + type;
-			var target_path = './public/images/user/' + req.session.user.img_id; console.log(tmp_path + ', ' + target_path);
-			fs.rename(tmp_path, target_path, function(err){if(err) throw err;});
-			file_upload = true;
 			name = id + '.' + type;
+			req.session.user.img_id = name;
+			var target_path = 'public/images/user/profile/' + name;
+			console.log(tmp_path + ', ' + target_path);
+			request({
+				uri: 'api.blitline.com/job',
+				method: 'POST',
+				json:{
+					application_id: "-LQ8fOpNSGbUnVnhCadifQ",
+					src: tmp_path,
+					functions:[{
+							name: "resize_to_fit",
+							params: {width: 40, height: 40}
+						},
+						save:{
+							image_identifier: target_path,
+							s3_destination:{
+								bucket: "radiant-sky",
+								key: target_path
+							}
+						}
+					]
+				}
+			});
+			file_upload = true;
 			console.log("NAME: " + name);
 		}else{
 			res.send('Image must be png, jpeg, jclient, gif or svg');
