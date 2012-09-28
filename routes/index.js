@@ -231,26 +231,21 @@ exports.editprofile = function(req, res){
 			req.session.user.img_id = name;
 			var target_path = 'public/images/user/profile/' + name;
 			console.log(tmp_path + ', ' + target_path);
-			request({
-				uri: 'api.blitline.com/job',
-				method: 'POST',
-				json:{
-					application_id: "-LQ8fOpNSGbUnVnhCadifQ",
-					src: tmp_path,
-					functions:[{
-							name: "resize_to_fit",
-							params: {width: 40, height: 40}
-						},
-						save:{
-							image_identifier: target_path,
-							s3_destination:{
-								bucket: "radiant-sky",
-								key: target_path
-							}
-						}
-					]
-				}
-			});
+			var command = 'curl "http://api.blitline.com/job" -d json=\'{ "application_id": "-LQ8fOpNSGbUnVnhCadifQ", "src" : "' + tmp_path + '", "functions" : [ {"name": "blur", "params" : {"radius" : 0.0, "sigma" : 2.0}, "save" : { "image_identifier" : "MY_CLIENT_ID", "s3_destination":{"bucket":"radiant-sky", "key":"' + target_path + '" }}} ]}\'';
+			console.log("COMMAND: " + command);
+			child = require('child_process').exec(command, function(err, stdout, stderr){console.log(stdout + stderr); console.log(err);});
+			/*
+			var request = require('request');
+			var http = require('http');
+			var p = {url: "http://api.blitline.com/job",body:'{"json": {"application_id": "-LQ8fOpNSGbUnVnhCadifQ","src": ' + tmp_path + ',"functions":[{"name": "resize_to_fit","params": {"width": 40, "height": 40}},{"save":{"image_identifier": ' + target_path + ',"s3_destination":{"bucket": "radiant-sky","key":' + target_path + '}}}]}}'};
+	//		{uri: "http://api.blitline.com/job",body:JSON.stringify({json: {application_id: "-LQ8fOpNSGbUnVnhCadifQ",src: tmp_path,functions:[{name: "resize_to_fit",params: {width: 40, height: 40}},{save:{image_identifier: target_path,s3_destination:{bucket: "radiant-sky",key: target_path}}}]}})}
+			console.log("P: " + JSON.stringify(p));
+			request.post({url: "http://api.blitline.com/job",body:'{"json": {"application_id": "-LQ8fOpNSGbUnVnhCadifQ","src": ' + tmp_path + ',"functions":[{"name": "resize_to_fit","params": {"width": 40, "height": 40}},{"save":{"image_identifier": ' + target_path + ',"s3_destination":{"bucket": "radiant-sky","key":' + target_path + '}}}]}}'}, function(err, res, body){if(err) throw err; console.log("CALLBACK:" + JSON.stringify(body));});
+/*			var options = {host: "api.blitline.com", port: 80, path: "/job", method: "POST"};
+			var REQ = http.request(options, function(RES){RES.on('data', function(chunk){console.log(chunk);});});
+			REQ.on('error', function(e){console.log('ERROR: ' + e.message);});
+			REQ.write(JSON.stringify({json: {application_id: "-LQ8fOpNSGbUnVnhCadifQ",src: tmp_path, postback_url: "localhost:5000/user/profile/",functions:[{name: "resize_to_fit",params: {width: 40, height: 40}},{save:{"image_identifier": target_path,s3_destination:{bucket: "radiant-sky",key: target_path}}}]}}));
+			REQ.end();*/
 			file_upload = true;
 			console.log("NAME: " + name);
 		}else{
