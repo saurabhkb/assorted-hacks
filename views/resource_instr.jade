@@ -1,6 +1,14 @@
 extends course_skeleton
 block styles
 	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/resource.css', rel='stylesheet')
+	style.
+                .ui-widget-content{border: none !important;}
+                .ui-state-active{background: maroon !important; border-radius: 3px !important; border: none !important;}
+                .ui-state-active a{color: white !important;}
+                .ui-tabs .ui-tabs-nav li.ui-tabs-selected{padding: 0 !important;}
+                .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{border: none !important}
+                .textinput{width: 350px;}
+                textarea{height: 50px;}
 block scripts
 	script
 		$(document).ready(
@@ -8,7 +16,7 @@ block scripts
 				$("#upload-res").click(
 					function(){
 						$("#add-res-window").dialog("open");
-						$("#add-res-window").dialog("option", "width", 400);
+						$("#add-res-window").dialog("option", "width", 450);
 						$("#add-res-window").dialog("option", "title", "Add a Resource");
 						$("#add-res-window").dialog("option", "minHeight", 100);
 					}
@@ -16,7 +24,7 @@ block scripts
 				$("#tabs").tabs();
 				$("#submit-res").click(
 					function(e){
-						if(!$("#upload_file").val() && ($("#vid_embed").val() == "Link to the Video" || $("#vid_embed").val() == "")  && ($("#link_url").val() == "URL of Link" || $("#link_url").val() == ""))
+						if(!$("#upload_file").val() || $("#vid_embed").val() == ""  || $("#link_url").val() == ""))
 						{
 							e.preventDefault();
 							return false;
@@ -42,19 +50,16 @@ block maincontent
 							li
 								a(href="#tabs-3") Add a Link
 						#tabs-1
-							.modal-subtitle Upload a File
 							p
 								input(type="file", name="upload_file")#upload_file
 							p
 								textarea(name="upload_file_expln", placeholder="Explain the Resource").textinput
 						#tabs-2
-							.modal-subtitle Embed a Video
 							p
 								input(type="text", placeholder="Link to the Video", name="embed_video")#vid_embed.textinput
 							p
 								textarea(name="embed_video_expln", placeholder="Explain the Resource").textinput
 						#tabs-3
-							.modal-subtitle Add a Link
 							p
 								input(type="text", placeholder="Name of Link", name="add_link")#link_name.textinput.msg
 							p

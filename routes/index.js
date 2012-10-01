@@ -216,7 +216,7 @@ exports.editprofile = function(req, res){
 				type = 'png';
 				break;
 			case 'image/jpeg':
-				type = 'jpg';
+				type = 'jpeg';
 				break;
 			case 'image/gif':
 				type = 'gif';
@@ -229,23 +229,28 @@ exports.editprofile = function(req, res){
 			var tmp_path = bgimg.path;
 			name = id + '.' + type;
 			req.session.user.img_id = name;
-			var target_path = 'public/images/user/profile/' + name;
-			console.log(tmp_path + ', ' + target_path);
-			var command = 'curl "http://api.blitline.com/job" -d json=\'{ "application_id": "-LQ8fOpNSGbUnVnhCadifQ", "src" : "' + tmp_path + '", "functions" : [ {"name": "blur", "params" : {"radius" : 0.0, "sigma" : 2.0}, "save" : { "image_identifier" : "MY_CLIENT_ID", "s3_destination":{"bucket":"radiant-sky", "key":"' + target_path + '" }}} ]}\'';
-			console.log("COMMAND: " + command);
-			child = require('child_process').exec(command, function(err, stdout, stderr){console.log(stdout + stderr); console.log(err);});
-			/*
-			var request = require('request');
-			var http = require('http');
-			var p = {url: "http://api.blitline.com/job",body:'{"json": {"application_id": "-LQ8fOpNSGbUnVnhCadifQ","src": ' + tmp_path + ',"functions":[{"name": "resize_to_fit","params": {"width": 40, "height": 40}},{"save":{"image_identifier": ' + target_path + ',"s3_destination":{"bucket": "radiant-sky","key":' + target_path + '}}}]}}'};
-	//		{uri: "http://api.blitline.com/job",body:JSON.stringify({json: {application_id: "-LQ8fOpNSGbUnVnhCadifQ",src: tmp_path,functions:[{name: "resize_to_fit",params: {width: 40, height: 40}},{save:{image_identifier: target_path,s3_destination:{bucket: "radiant-sky",key: target_path}}}]}})}
-			console.log("P: " + JSON.stringify(p));
-			request.post({url: "http://api.blitline.com/job",body:'{"json": {"application_id": "-LQ8fOpNSGbUnVnhCadifQ","src": ' + tmp_path + ',"functions":[{"name": "resize_to_fit","params": {"width": 40, "height": 40}},{"save":{"image_identifier": ' + target_path + ',"s3_destination":{"bucket": "radiant-sky","key":' + target_path + '}}}]}}'}, function(err, res, body){if(err) throw err; console.log("CALLBACK:" + JSON.stringify(body));});
-/*			var options = {host: "api.blitline.com", port: 80, path: "/job", method: "POST"};
-			var REQ = http.request(options, function(RES){RES.on('data', function(chunk){console.log(chunk);});});
-			REQ.on('error', function(e){console.log('ERROR: ' + e.message);});
-			REQ.write(JSON.stringify({json: {application_id: "-LQ8fOpNSGbUnVnhCadifQ",src: tmp_path, postback_url: "localhost:5000/user/profile/",functions:[{name: "resize_to_fit",params: {width: 40, height: 40}},{save:{"image_identifier": target_path,s3_destination:{bucket: "radiant-sky",key: target_path}}}]}}));
-			REQ.end();*/
+			var init_target_path = 'public/images/user/post/' + name;
+			console.log(tmp_path + ', ' + init_target_path);
+			var im = require('imagemagick');
+			im.resize({srcPath: tmp_path, dstPath: tmp_path, width: 40}, function(err, stdout, stderr){
+				if(err) throw err;
+				console.log(stdout);
+				var knoxCli = require('knox').createClient({
+					key: "AKIAJCRRUWJ6DKKLKCXQ",
+					secret: "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",
+					bucket: "radiant-sky"
+				});
+				knoxCli.putFile(tmp_path, init_target_path, {'Content-Type': 'image/' + type}, function(err, res){
+					if(err) throw err; console.log("RES: " + res.statusCode);
+					var tmp_url = "https://s3.amazonaws.com/radiant-sky/public/images/user/temp/" + name;
+					var final_target_path = "public/images/user/profile/" + name;
+					/*var command = 'curl "http://api.blitline.com/job" -d json=\'{ "application_id": "-LQ8fOpNSGbUnVnhCadifQ", "src" : "' + tmp_url + '", "functions" : [ {"name": "resize_to_fit", "params" : {"width" : 40, "height" : 40}, "save" : { "image_identifier" : "MY_CLIENT_ID", "s3_destination":{"bucket":"radiant-sky", "key":"' + final_target_path + '" }}} ]}\'';
+					child = require('child_process').exec(command, function(err, stdout, stderr){
+						console.log(stdout + stderr);
+						console.log("ERROR: " + err);
+					});*/
+				});
+			});
 			file_upload = true;
 			console.log("NAME: " + name);
 		}else{
