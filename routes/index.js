@@ -244,13 +244,23 @@ exports.editprofile = function(req, res){
 					if(err) throw err; console.log("RES: " + res.statusCode);
 					var tmp_url = "https://s3.amazonaws.com/radiant-sky/public/images/user/temp/" + name;
 					var final_target_path = "public/images/user/profile/" + name;
-					/*var command = 'curl "http://api.blitline.com/job" -d json=\'{ "application_id": "-LQ8fOpNSGbUnVnhCadifQ", "src" : "' + tmp_url + '", "functions" : [ {"name": "resize_to_fit", "params" : {"width" : 40, "height" : 40}, "save" : { "image_identifier" : "MY_CLIENT_ID", "s3_destination":{"bucket":"radiant-sky", "key":"' + final_target_path + '" }}} ]}\'';
-					child = require('child_process').exec(command, function(err, stdout, stderr){
-						console.log(stdout + stderr);
-						console.log("ERROR: " + err);
-					});*/
 				});
 			});
+			im.resize({srcPath: tmp_path, dstPath: tmp_path, width: 40}, function(err, stdout, stderr){
+				if(err) throw err;
+				console.log(stdout);
+				var knoxCli = require('knox').createClient({
+					key: "AKIAJCRRUWJ6DKKLKCXQ",
+					secret: "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",
+					bucket: "radiant-sky"
+				});
+				knoxCli.putFile(tmp_path, init_target_path, {'Content-Type': 'image/' + type}, function(err, res){
+					if(err) throw err; console.log("RES: " + res.statusCode);
+					var tmp_url = "https://s3.amazonaws.com/radiant-sky/public/images/user/temp/" + name;
+					var final_target_path = "public/images/user/profile/" + name;
+				});
+			});
+
 			file_upload = true;
 			console.log("NAME: " + name);
 		}else{
