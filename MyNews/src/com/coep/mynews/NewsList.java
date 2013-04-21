@@ -14,11 +14,11 @@ public class NewsList extends Activity implements Constants {
 		final ActionBar bar = getActionBar();
 		bar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		bar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_TITLE);
+		bar.addTab(bar.newTab().setText("Top News").setTabListener(new TabListener()).setTag(Integer.valueOf(iTOP_NEWS)));
 		bar.addTab(bar.newTab().setText("Business").setTabListener(new TabListener()).setTag(Integer.valueOf(iBUSINESS)));
 		bar.addTab(bar.newTab().setText("Sport").setTabListener(new TabListener()).setTag(Integer.valueOf(iSPORT)));
 		bar.addTab(bar.newTab().setText("Technology").setTabListener(new TabListener()).setTag(Integer.valueOf(iTECH)));
 		bar.addTab(bar.newTab().setText("World").setTabListener(new TabListener()).setTag(Integer.valueOf(iWORLD)));
-		bar.addTab(bar.newTab().setText("Top News").setTabListener(new TabListener()).setTag(Integer.valueOf(iTOP_NEWS)));
 	
 		setContentView(R.layout.activity_newslist);
 		
