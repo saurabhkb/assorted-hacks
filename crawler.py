@@ -2,6 +2,7 @@ from extractor import Extractor
 import redis
 import os
 from py2neo import neo4j, cypher
+from urlparse import urlparse
 
 class Crawler:
 	def __init__(self):
