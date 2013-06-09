@@ -13,7 +13,7 @@ class Crawler:
 		self.queue_key = "URL_QUEUE"
 		self.redis.flushdb()
 
-		if os.environ.get('NEO4j_URL'):
+		if os.environ.get('NEO4J_URL'):
 			graph_db_url = urlparse(os.environ.get('NEO4J_URL'))
 			neo4j.authenticate(
 				"{host}:{port}".format(host = graph_db_url.hostname, port = graph_db_url.port),
