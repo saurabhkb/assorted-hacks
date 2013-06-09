@@ -18,7 +18,7 @@ class Crawler:
 			graph_db_url = urlparse(os.environ.get('NEO4J_URL'))
 			neo4j.authenticate(
 				"{host}:{port}".format(host = graph_db_url.hostname, port = graph_db_url.port),
-				graph_db_url.username, graph_db_url.passowrd
+				graph_db_url.username, graph_db_url.password
 			)
 			self.graphdb = neo4j.GraphDatabaseService(
 				'http://{host}:{port}/db/data'.format(host = graph_db_url.hostname, port = graph_db_url.port)
