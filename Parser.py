@@ -4,6 +4,8 @@ import re
 import sys
 import urllib2
 
+nltk.data.path.append('./nltk_data/')
+
 class Parser:
 	def __init__(self):
 		self.stopwords = []
