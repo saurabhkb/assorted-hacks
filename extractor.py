@@ -5,49 +5,62 @@ from unidecode import unidecode
 from Parser import Parser
 import urllib2
 import re
+
 class Extractor:
 	def __init__(self):
-		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php']
+		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death']
 		pass
 
-	def createUrl(self, topic, prop):
-		return 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic.replace(' ', '+') + '&prop=' + prop + '&format=json&redirects'
+	def getAPIdata(self, topic, prop):
+		try:
+			url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic.replace(' ', '+') + '&prop=' + prop + '&format=json&redirects'
+			result_json = requests.get(url).json()
+			return result_json['parse'][prop]
+		except KeyError:
+			print "no {0} data for name {1}".format(prop, topic)
+			return None
+		except requests.ConnectionError:
+			print "failed to connect for {0} for name {1}".format(prop, topic)
+			return None
 
 	def extract(self, topic):
-		cat = requests.get(self.createUrl(topic, 'categories'))
-		cj = cat.json()
-		catlist = []
-		for k in cj['parse']['categories']:
-			c = k['*']
-			clean_c = self.clean(c)
-			if self.contains(clean_c, self.blacklist): pass
-			else: catlist.append(clean_c)
-		r = requests.get(self.createUrl(topic, 'text'))
-		j = r.json()
-		text = j['parse']['text']['*']
-		tree = lxml.html.parse(StringIO(unidecode(text)))
-		l = tree.xpath("//p/text()|//p/a/text()|//p/b/text()|//p/i/text()|//p/i/a/text()|//p/b/a/text()")
-		alist = tree.xpath("//p/b/a/@href|//p/a/@href|//p/i/a/@href")
-		atextlist = tree.xpath("//p/b/a/text()|//p/a/text()|//p/i/a/text()")
-		cleanalist = set()
-		for a, txt in zip(alist, atextlist):
-			if self.containsCapitals(txt):
-				cleanalist.add(self.clean(a))
-			else:
-				cleanalist.add(self.clean(a).lower())
-		s = reduce(lambda x, y: x + ' ' + y, l)
-		s = self.clean(s)
-		p = Parser()
-		m, k, d = p.parseText(s)
-		n = set()
-		for b in m:
-			found = False
-			for a in cleanalist:
-				if a.rfind(b) >= 0:
-					found = True
-					break
-			if not found: n.add(b)
-		return sorted(set.union(n, cleanalist)), set(catlist), set(cleanalist)
+		keyword_set = set()
+		category_set = set()
+		link_set = set()
+
+		#categories
+		category_json = self.getAPIdata(topic, 'categories')
+		if category_json:
+			for k in category_json:
+				clean_c = self.clean(k['*'])
+				if self.contains(clean_c, self.blacklist): pass
+				else: category_set.add(clean_c)
+
+		#text
+		text_json = self.getAPIdata(topic, 'text')
+		if text_json:
+			text = text_json['*']
+			tree = lxml.html.parse(StringIO(unidecode(text)))
+			l = tree.xpath("//p/text()|//p/a/text()|//p/b/text()|//p/i/text()|//p/i/a/text()|//p/b/a/text()")
+			alist = tree.xpath("//p/b/a/@href|//p/a/@href|//p/i/a/@href")
+			for a in alist:
+				clean_a = self.clean(a)
+				if self.contains(clean_a, self.blacklist): pass
+				else: link_set.add(clean_a.lower())
+			s = self.clean(reduce(lambda x, y: x + ' ' + y, l))
+			p = Parser()
+			m, k, d = p.parseText(s)
+			n = set()
+			for b in m:
+				found = False
+				for a in link_set:
+					if a.rfind(b) >= 0:
+						found = True
+						break
+				if not found: n.add(b)
+			keyword_set = set.union(n, link_set)
+		
+		return keyword_set, category_set, link_set
 
 	def clean(self, s):
 		if type(s) == unicode:
@@ -57,6 +70,7 @@ class Extractor:
 		s = urllib2.unquote(s)
 		s = re.sub(r'/wiki/', '', s)
 		s = re.sub(r'_', ' ', s)
+		s = re.sub(r'#.*', '', s)
 		return s
 
 	def contains(self, s, l):
@@ -68,7 +82,7 @@ class Extractor:
 
 	def containsCapitals(self, s):
 		for i in s:
-			if 65 <= ord(i) <= 90:
+			if ord('A') <= ord(i) <= ord('Z'):
 				return True
 		return False
 

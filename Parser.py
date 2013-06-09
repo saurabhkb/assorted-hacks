@@ -7,7 +7,6 @@ import urllib2
 class Parser:
 	def __init__(self):
 		self.stopwords = []
-		self.all_keywords = {}
 
 	def loadStopWords(self, fn):
 		f = open(fn, "r")
@@ -111,22 +110,6 @@ class Parser:
 		text = article.cleaned_text
 		return text
 
-	def update_keyword_list(self, kwl, kw):	#lkl - list of keyword lists, kl - keyword list, kw - keyword
-		kw_max = None
-		max_score = -1
-		for kw_i in self.all_keywords:
-			if kw_i.lower().rfind(kw.lower()) >= 0:
-				if self.all_keywords[kw_i] > max_score:
-					max_score = self.all_keywords[kw_i]
-					kw_max = kw_i
-		if kw_max:
-			kwl.add(kw_max)
-			self.all_keywords[kw_max] += 1
-		else:
-			kwl.add(kw)
-			self.all_keywords[kw] = 1
-
-
 	def preclean(self, s):
 		s = urllib2.unquote(s)
 		s = re.sub(r"[\[\]\(\)\*\+\~\`\=\":;]", " , ", s)
@@ -160,10 +143,3 @@ class Parser:
 		c = s[0]
 		if 65 <= ord(c) <= 90: return True
 		return False
-
-	def getAllKeywords(self, f):
-		(title, cat, kwl) = self.parseFile(f)
-		allset = set()
-		for x in kwl:
-			for i in x: allset.add(i)
-		return allset
