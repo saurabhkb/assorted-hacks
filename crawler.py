@@ -37,12 +37,12 @@ class Crawler:
 		get_create_rel = lambda x, typ, y: self.graphdb.get_or_create_relationships((x, typ, y, {'weight': 1}))
 
 		enqueue(start)
-		i = 5
-		while self.redis.scard(self.queue_key) and i > 0:
+		while self.redis.scard(self.queue_key):
 			topic = self.redis.spop(self.queue_key)
 			if topic and topic.strip() and not self.redis.sismember(self.seen_key, topic):
 				visit(topic)
 				topic_node = get_create_node(topic, 'topic')
+				print 'topic: ', topic
 				keywords, categories, links = self.ex.extract(topic)
 				for a in links:
 					a_node = get_create_node(a, 'topic')
@@ -51,4 +51,3 @@ class Crawler:
 				for c in categories:
 					c_node = get_create_node(c, 'category')
 					get_create_rel(c_node, 'parent', topic_node)
-			i -= 1
