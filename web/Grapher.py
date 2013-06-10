@@ -1,5 +1,7 @@
 from py2neo import neo4j, cypher
 import os
+import urlparse
+
 class Grapher:
 	def __init__(self):
 		if os.environ.get('NEO4J_URL'):
