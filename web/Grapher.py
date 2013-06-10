@@ -1,6 +1,6 @@
 from py2neo import neo4j, cypher
 import os
-import urlparse
+from urlparse import urlparse
 
 class Grapher:
 	def __init__(self):
