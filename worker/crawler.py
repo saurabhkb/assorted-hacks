@@ -3,6 +3,7 @@ import redis
 import os
 from py2neo import neo4j, cypher
 from urlparse import urlparse
+from unidecode import unidecode
 
 class Crawler:
 	def __init__(self):
@@ -32,7 +33,7 @@ class Crawler:
 	def crawl(self, start):
 		#cleaner method names
 		visit = lambda x: self.redis.sadd(self.seen_key, x)
-		enqueue = lambda x: self.redis.sadd(self.queue_key, x)
+		enqueue = lambda x: self.redis.sadd(self.queue_key, self.clean(x))
 		get_create_node = lambda x, typ: self.topic_index.get_or_create('name', x, {'name': x, 'type': 'topic'}) if typ == 'topic' else self.category_index.get_or_create('name', x, {'name': x, 'type': 'category'})
 		get_create_rel = lambda x, typ, y: self.graphdb.get_or_create_relationships((x, typ, y, {'weight': 1}))
 
@@ -51,3 +52,10 @@ class Crawler:
 				for c in categories:
 					c_node = get_create_node(c, 'category')
 					get_create_rel(c_node, 'parent', topic_node)
+	def clean(self, name):
+		clean_name = ""
+		if type(name) == unicode:
+			clean_name = unidecode(name)
+		else:
+			clean_name = str(name)
+		return clean_name

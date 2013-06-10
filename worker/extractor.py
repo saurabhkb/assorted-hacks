@@ -13,7 +13,7 @@ class Extractor:
 
 	def getAPIdata(self, topic, prop):
 		try:
-			url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic.replace(' ', '+') + '&prop=' + prop + '&format=json&redirects'
+			url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic.replace(' ', '+') + '&prop=' + prop + '&section=0&format=json&redirects'
 			result_json = requests.get(url).json()
 			return result_json['parse'][prop]
 		except KeyError:
