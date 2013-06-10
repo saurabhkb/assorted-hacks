@@ -35,7 +35,7 @@ class Crawler:
 		visit = lambda x: self.redis.sadd(self.seen_key, x)
 		enqueue = lambda x: self.redis.sadd(self.queue_key, self.clean(x))
 		get_create_node = lambda x, typ: self.topic_index.get_or_create('name', x, {'name': x, 'type': 'topic'}) if typ == 'topic' else self.category_index.get_or_create('name', x, {'name': x, 'type': 'category'})
-		get_create_rel = lambda x, typ, y: self.graphdb.get_or_create_relationships((x, typ, y, {'weight': 1}))
+		create_rel = lambda x, typ, y: self.graphdb.get_or_create_relationships((x, typ, y, {'weight': 1}))
 
 		enqueue(start)
 		while self.redis.scard(self.queue_key):
@@ -47,11 +47,21 @@ class Crawler:
 				keywords, categories, links = self.ex.extract(topic)
 				for a in links:
 					a_node = get_create_node(a, 'topic')
-					get_create_rel(a_node, 'sibling', topic_node)
+					rel = self.graphdb.match_one(start_node = a_node, rel_type = None, end_node = topic_node, bidirectional = True)
+					if not rel: create_rel(a_node, 'sibling', topic_node)
+					else:
+						orig_wt = rel.get_properties()['weight']
+						rel.set_properties({'weight': orig_wt + 1})
 					enqueue(a)
 				for c in categories:
 					c_node = get_create_node(c, 'category')
 					get_create_rel(c_node, 'parent', topic_node)
+					rel = self.graphdb.match_one(start_node = c_node, end_node = topic_node, bidirectional = True)
+					if not rel: create_rel(c_node, 'sibling', topic_node)
+					else:
+						orig_wt = rel.get_properties()['weight']
+						rel.set_properties({'weight': orig_wt + 1})
+
 	def clean(self, name):
 		clean_name = ""
 		if type(name) == unicode:
