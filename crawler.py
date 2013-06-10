@@ -25,47 +25,57 @@ class Crawler:
 				'http://{host}:{port}/db/data'.format(host = graph_db_url.hostname, port = graph_db_url.port)
 			)
 		else:
+			print "DJSLKJDSLFS"
 			self.graphdb = neo4j.GraphDatabaseService()
 		self.graphdb.clear()
+		print "cleared database!"
 		self.topic_index = self.graphdb.get_or_create_index(neo4j.Node, "topic")
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
+
+	def get_create_rel(self, a_node, rtype, b_node):
+		try:
+			r = self.graphdb.get_or_create_relationships((a_node, rtype, b_node))[0]
+			if r.get_properties().has_key('weight'):
+				r.set_properties({'weight': r.get_properties()['weight'] + 1, 'type': rtype})
+				print "weight: ", r.get_properties()['weight'] + 1
+			else:
+				r.set_properties({'weight': 1, 'type': rtype})
+		except Exception as e:
+			print a_node['name'], a_node._id, b_node['name'], b_node._id
+			print "get_create_rel ERROR:", e
+
+	def get_create_node(self, n, typ):
+		try:
+			nod = self.graphdb.get_or_create_indexed_node(typ, 'name', self.clean(n), {'name': self.clean(n), 'type': typ})
+			return nod
+		except Exception as e:
+			print n, typ
+			print "get_create_node ERROR:", e
+			return None
 
 	def crawl(self, start):
 		#cleaner method names
 		visit = lambda x: self.redis.sadd(self.seen_key, x)
 		enqueue = lambda x: self.redis.sadd(self.queue_key, self.clean(x))
-		get_create_node = lambda x, typ: self.topic_index.get_or_create('name', x, {'name': x, 'type': 'topic'}) if typ == 'topic' else self.category_index.get_or_create('name', x, {'name': x, 'type': 'category'})
-		create_rel = lambda x, typ, y: self.graphdb.get_or_create_relationships((x, typ, y, {'weight': 1}))
 
+		limit = 1000000
 		enqueue(start)
-		while self.redis.scard(self.queue_key):
+		while self.redis.scard(self.queue_key) and limit > 0:
 			topic = self.redis.spop(self.queue_key)
 			if topic and topic.strip() and not self.redis.sismember(self.seen_key, topic):
 				visit(topic)
-				topic_node = get_create_node(topic, 'topic')
+				topic_node = self.get_create_node(topic, 'topic')
 				print 'topic: ', topic
 				keywords, categories, links = self.ex.extract(topic)
-				for a in links:
-					a_node = get_create_node(a, 'topic')
-					rel = self.graphdb.match_one(start_node = a_node, rel_type = None, end_node = topic_node, bidirectional = True)
-					if not rel: create_rel(a_node, 'sibling', topic_node)
-					else:
-						orig_wt = rel.get_properties()['weight']
-						rel.set_properties({'weight': orig_wt + 1})
-					enqueue(a)
-				for c in categories:
-					c_node = get_create_node(c, 'category')
-					get_create_rel(c_node, 'parent', topic_node)
-					rel = self.graphdb.match_one(start_node = c_node, end_node = topic_node, bidirectional = True)
-					if not rel: create_rel(c_node, 'sibling', topic_node)
-					else:
-						orig_wt = rel.get_properties()['weight']
-						rel.set_properties({'weight': orig_wt + 1})
+				if topic_node:
+					for a in links:
+						a_node = self.get_create_node(a, 'topic')
+						self.get_create_rel(a_node, 'sibling', topic_node)
+						enqueue(a)
+					for c in categories:
+						c_node = self.get_create_node(c, 'category')
+						self.get_create_rel(c_node, 'parent', topic_node)
+			limit -= 1
 
 	def clean(self, name):
-		clean_name = ""
-		if type(name) == unicode:
-			clean_name = unidecode(name)
-		else:
-			clean_name = str(name)
-		return clean_name
+		return unidecode(name.decode("utf-8", "ignore"))

@@ -9,7 +9,7 @@ import traceback
 
 class Extractor:
 	def __init__(self):
-		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template']
+		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template', 'wiktio', 'en.']
 		pass
 
 	def getAPIdata(self, topic, prop):
@@ -24,6 +24,9 @@ class Extractor:
 		except requests.ConnectionError:
 			print "failed to connect for {0} for name {1}".format(prop, topic)
 			return None
+		except Exception as e:
+			print "weird error", e
+			print "{0} for name {1}".format(prop, topic)
 
 	def extract(self, topic):
 		keyword_set = set()
@@ -68,10 +71,7 @@ class Extractor:
 		return keyword_set, category_set, link_set
 
 	def clean(self, s):
-		if type(s) == unicode:
-			s = unidecode(s)
-		else:
-			s = str(s)
+		s = unidecode(s.decode("utf-8", "ignore"))
 		s = urllib2.unquote(s)
 		s = re.sub(r'/wiki/', '', s)
 		s = re.sub(r'_', ' ', s)
