@@ -1,1 +1,1 @@
-worker: python -u worker/bg.py
+worker: python -u bg.py
