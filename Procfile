@@ -1,1 +1,1 @@
-worker: python -u bg.py
+web: python ./web/server.py

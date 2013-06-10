@@ -8,7 +8,7 @@ import re
 
 class Extractor:
 	def __init__(self):
-		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death']
+		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template']
 		pass
 
 	def getAPIdata(self, topic, prop):
