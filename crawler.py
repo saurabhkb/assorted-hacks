@@ -1,4 +1,5 @@
 from extractor import Extractor
+import sys
 import redis
 import os
 from py2neo import neo4j, cypher
@@ -31,27 +32,8 @@ class Crawler:
 		print "cleared database!"
 		self.topic_index = self.graphdb.get_or_create_index(neo4j.Node, "topic")
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
-
-	def get_create_rel(self, a_node, rtype, b_node):
-		try:
-			r = self.graphdb.get_or_create_relationships((a_node, rtype, b_node))[0]
-			if r.get_properties().has_key('weight'):
-				r.set_properties({'weight': r.get_properties()['weight'] + 1, 'type': rtype})
-				print "weight: ", r.get_properties()['weight'] + 1
-			else:
-				r.set_properties({'weight': 1, 'type': rtype})
-		except Exception as e:
-			print a_node['name'], a_node._id, b_node['name'], b_node._id
-			print "get_create_rel ERROR:", e
-
-	def get_create_node(self, n, typ):
-		try:
-			nod = self.graphdb.get_or_create_indexed_node(typ, 'name', self.clean(n), {'name': self.clean(n), 'type': typ})
-			return nod
-		except Exception as e:
-			print n, typ
-			print "get_create_node ERROR:", e
-			return None
+		self.sibling_index = self.graphdb.get_or_create_index(neo4j.Relationship, "sibling")
+		self.parent_index = self.graphdb.get_or_create_index(neo4j.Relationship, "parent")
 
 	def crawl(self, start):
 		#cleaner method names
@@ -61,20 +43,25 @@ class Crawler:
 		limit = 1000000
 		enqueue(start)
 		while self.redis.scard(self.queue_key) and limit > 0:
+			batch = neo4j.WriteBatch(self.graphdb)
 			topic = self.redis.spop(self.queue_key)
 			if topic and topic.strip() and not self.redis.sismember(self.seen_key, topic):
 				visit(topic)
-				topic_node = self.get_create_node(topic, 'topic')
+				batch.get_or_create_indexed_node('topic', 'name', self.clean(topic), {'name': self.clean(topic), 'type': 'topic'})
 				print 'topic: ', topic
 				keywords, categories, links = self.ex.extract(topic)
-				if topic_node:
-					for a in links:
-						a_node = self.get_create_node(a, 'topic')
-						self.get_create_rel(a_node, 'sibling', topic_node)
-						enqueue(a)
-					for c in categories:
-						c_node = self.get_create_node(c, 'category')
-						self.get_create_rel(c_node, 'parent', topic_node)
+				for i, a in enumerate(links):
+					batch.get_or_create_indexed_node('topic', 'name', self.clean(a), {'name': self.clean(a), 'type': 'topic'})
+					batch.get_or_create_indexed_relationship('sibling', 'type', 'sibling', 0, 'sibling', i + 1, {'type': 'sibling', 'weight': 1})
+					enqueue(a)
+				'''for j, c in enumerate(categories):
+					batch.get_or_create_indexed_node('category', 'name', self.clean(c), {'name': self.clean(c), 'type': 'category'})
+					batch.get_or_create_indexed_relationship('parent', 'type', 'parent', 0, 'parent', j + len(links) + 1, {'type': 'parent', 'weight': 1})'''
+			try:
+				batch.submit()
+			except Exception as e:
+				print e
+				sys.exit(1)
 			limit -= 1
 
 	def clean(self, name):

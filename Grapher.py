@@ -19,6 +19,6 @@ class Grapher:
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
 
 	def getRelatedNodes(self, topic):
-		query = "start n = node(*) match n-[r1:sibling]-m1 where n.name = '{0}' return m1.name".format(topic)
+		query = "start n = node(*) match n-[r1:sibling]-m1 where has(n.name) and n.name = '{0}' return m1.name".format(topic)
 		data, metadata = cypher.execute(self.graphdb, query)
 		return data
