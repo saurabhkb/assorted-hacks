@@ -31,6 +31,27 @@ class Crawler:
 		self.topic_index = self.graphdb.get_or_create_index(neo4j.Node, "topic")
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
 
+	def get_create_rel(self, a_node, rtype, b_node):
+		try:
+			r = self.graphdb.get_or_create_relationships((a_node, rtype, b_node))[0]
+			if r.get_properties().has_key('weight'):
+				r.set_properties({'weight': r.get_properties()['weight'] + 1, 'type': rtype})
+				print "weight: ", r.get_properties()['weight'] + 1
+			else:
+				r.set_properties({'weight': 1, 'type': rtype})
+		except Exception as e:
+			print a_node['name'], a_node._id, b_node['name'], b_node._id
+			print "get_create_rel ERROR:", e
+
+	def get_create_node(self, n, typ):
+		try:
+			nod = self.graphdb.get_or_create_indexed_node(typ, 'name', self.clean(n), {'name': self.clean(n), 'type': typ})
+			return nod
+		except Exception as e:
+			print n, typ
+			print "get_create_node ERROR:", e
+			return None
+
 	def crawl(self, start):
 		#cleaner method names
 		visit = lambda x: self.redis.sadd(self.seen_key, x)
@@ -38,50 +59,21 @@ class Crawler:
 
 		limit = 1000000
 		enqueue(start)
-		node_batch = neo4j.WriteBatch(self.graphdb)
-		rel_batch = neo4j.WriteBatch(self.graphdb)
 		while self.redis.scard(self.queue_key) and limit > 0:
-			success = False
-			try:
-				node_batch.clear()
-				rel_batch.clear()
-			except Exception as e:
-				print e
-				continue
 			topic = self.redis.spop(self.queue_key)
 			if topic and topic.strip() and not self.redis.sismember(self.seen_key, topic):
 				visit(topic)
-				node_batch.get_or_create_indexed_node(self.topic_index, 'name', topic, {'name': topic, 'type': 'topic'})
+				topic_node = self.get_create_node(topic, 'topic')
 				print 'topic: ', topic
-				try:
-					keywords, categories, links = self.ex.extract(topic)
-					success = True
-				except Exception as e:
-					success = False
-					print e
-				if success:
+				keywords, categories, links = self.ex.extract(topic)
+				if topic_node:
 					for a in links:
-						node_batch.get_or_create_indexed_node(self.topic_index, 'name', a, {'name': a, 'type': 'topic'})
+						a_node = self.get_create_node(a, 'topic')
+						self.get_create_rel(a_node, 'sibling', topic_node)
 						enqueue(a)
 					for c in categories:
-						node_batch.get_or_create_indexed_node(self.topic_index, 'name', c, {'name': c, 'type': 'category'})
-					try:
-						result = node_batch.submit()
-						success = True
-					except Exception as e:
-						success = False
-						print e
-				if success:
-					topic_node = result[0]
-					for anode in result[1:1 + len(links)]:
-						rel_batch.get_or_create((anode, 'sibling', topic_node, {}))
-					for cnode in result[1 + len(links):]:
-						rel_batch.get_or_create((anode, 'category', topic_node, {}))
-					try:
-						result = rel_batch.submit()
-					except Exception as e:
-						success = False
-						print e
+						c_node = self.get_create_node(c, 'category')
+						self.get_create_rel(c_node, 'parent', topic_node)
 			limit -= 1
 
 	def clean(self, name):

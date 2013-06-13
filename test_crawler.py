@@ -1,4 +1,5 @@
 from extractor import Extractor
+import sys
 import redis
 import os
 from py2neo import neo4j, cypher
@@ -25,11 +26,14 @@ class Crawler:
 				'http://{host}:{port}/db/data'.format(host = graph_db_url.hostname, port = graph_db_url.port)
 			)
 		else:
+			print "DJSLKJDSLFS"
 			self.graphdb = neo4j.GraphDatabaseService()
 		self.graphdb.clear()
 		print "cleared database!"
 		self.topic_index = self.graphdb.get_or_create_index(neo4j.Node, "topic")
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
+		self.sibling_index = self.graphdb.get_or_create_index(neo4j.Relationship, "sibling")
+		self.parent_index = self.graphdb.get_or_create_index(neo4j.Relationship, "parent")
 
 	def crawl(self, start):
 		#cleaner method names
@@ -38,54 +42,27 @@ class Crawler:
 
 		limit = 1000000
 		enqueue(start)
-		node_batch = neo4j.WriteBatch(self.graphdb)
-		rel_batch = neo4j.WriteBatch(self.graphdb)
 		while self.redis.scard(self.queue_key) and limit > 0:
-			success = False
-			try:
-				node_batch.clear()
-				rel_batch.clear()
-			except Exception as e:
-				print e
-				continue
+			batch = neo4j.WriteBatch(self.graphdb)
 			topic = self.redis.spop(self.queue_key)
 			if topic and topic.strip() and not self.redis.sismember(self.seen_key, topic):
 				visit(topic)
-				node_batch.get_or_create_indexed_node(self.topic_index, 'name', topic, {'name': topic, 'type': 'topic'})
+				batch.get_or_create_indexed_node('topic', 'name', self.clean(topic), {'name': self.clean(topic), 'type': 'topic'})
 				print 'topic: ', topic
-				try:
-					keywords, categories, links = self.ex.extract(topic)
-					success = True
-				except Exception as e:
-					success = False
-					print e
-				if success:
-					for a in links:
-						node_batch.get_or_create_indexed_node(self.topic_index, 'name', a, {'name': a, 'type': 'topic'})
-						enqueue(a)
-					for c in categories:
-						node_batch.get_or_create_indexed_node(self.topic_index, 'name', c, {'name': c, 'type': 'category'})
-					try:
-						result = node_batch.submit()
-						success = True
-					except Exception as e:
-						success = False
-						print e
-				if success:
-					topic_node = result[0]
-					for anode in result[1:1 + len(links)]:
-						rel_batch.get_or_create((anode, 'sibling', topic_node, {}))
-					for cnode in result[1 + len(links):]:
-						rel_batch.get_or_create((anode, 'category', topic_node, {}))
-					try:
-						result = rel_batch.submit()
-					except Exception as e:
-						success = False
-						print e
+				keywords, categories, links = self.ex.extract(topic)
+				for i, a in enumerate(links):
+					batch.get_or_create_indexed_node('topic', 'name', self.clean(a), {'name': self.clean(a), 'type': 'topic'})
+					batch.get_or_create_indexed_relationship('sibling', 'type', 'sibling', 0, 'sibling', i + 1, {'type': 'sibling', 'weight': 1})
+					enqueue(a)
+				'''for j, c in enumerate(categories):
+					batch.get_or_create_indexed_node('category', 'name', self.clean(c), {'name': self.clean(c), 'type': 'category'})
+					batch.get_or_create_indexed_relationship('parent', 'type', 'parent', 0, 'parent', j + len(links) + 1, {'type': 'parent', 'weight': 1})'''
+			try:
+				batch.submit()
+			except Exception as e:
+				print e
+				sys.exit(1)
 			limit -= 1
 
 	def clean(self, name):
-		if type(name) == unicode:
-			return unidecode(name)
-		else:
-			return unidecode(name.decode("utf-8", "ignore"))
+		return unidecode(name.decode("utf-8", "ignore"))
