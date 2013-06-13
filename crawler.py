@@ -26,8 +26,8 @@ class Crawler:
 			)
 		else:
 			self.graphdb = neo4j.GraphDatabaseService()
-		self.graphdb.clear()
-		print "cleared database!"
+		#self.graphdb.clear()
+		#print "cleared database!"
 		self.topic_index = self.graphdb.get_or_create_index(neo4j.Node, "topic")
 		self.category_index = self.graphdb.get_or_create_index(neo4j.Node, "category")
 
