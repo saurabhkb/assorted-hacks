@@ -1,91 +1,42 @@
 import requests
 import lxml.html
 from StringIO import StringIO
-from unidecode import unidecode
-from Parser import Parser
-import urllib2
-import re
 import traceback
+from util import Util
 
-class Extractor:
+
+class Extractor(Util):
 	def __init__(self):
-		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template', 'wiktio', 'en.', 'file']
-		pass
+		Util.__init__(self)
 
-	def getAPIdata(self, topic, prop):
+	def getWikiCategories(self, topic):
 		topic_url = topic.replace(' ', '+')
-		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=' + prop + '&section=0&format=json&redirects'
-		result_json = requests.get(url).json()
-		return result_json['parse'][prop]
-		
-	def extract(self, topic):
-		keyword_set = set()
+		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=categories&format=json&redirects'
+		category_json = requests.get(url).json()
 		category_set = set()
+		for k in category_json['parse']['categories']:
+			category_set.add(self._clean(k['*']))
+		return category_set
+	
+	def getWikiLinks(self, topic):
+		topic_url = topic.replace(' ', '+')
+		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=links&section=0&format=json&redirects'
+		result_json = requests.get(url).json()
 		link_set = set()
-		#categories
-		category_json = self.getAPIdata(topic, 'categories')
-		if category_json:
-			for k in category_json:
-				clean_c = self.clean(k['*'])
-				if self.contains(clean_c, self.blacklist): pass
-				else: category_set.add(clean_c)
+		for l in result_json['parse']['links']:
+			link_set.add(self._clean(l['*']))
+		return link_set
 
-		#text
-		text_json = self.getAPIdata(topic, 'text')
-		if text_json:
-			text = text_json['*']
-			tree = lxml.html.parse(StringIO(unidecode(text)))
-			l = tree.xpath("//p/text()|//p/a/text()|//p/b/text()|//p/i/text()|//p/i/a/text()|//p/b/a/text()")
-			alist = tree.xpath("//p/b/a/@href|//p/a/@href|//p/i/a/@href")
-			for a in alist:
-				clean_a = self.clean(a)
-				if self.contains(clean_a, self.blacklist): pass
-				else: link_set.add(clean_a)
-			s = self.clean(reduce(lambda x, y: x + ' ' + y, l))
-			p = Parser()
-			m, k, d = p.parseText(s)
-			n = set()
-			for b in m:
-				found = False
-				for a in link_set:
-					if a.rfind(b) >= 0:
-						found = True
-						break
-				if not found: n.add(b)
-			keyword_set = set.union(n, link_set)
-		return keyword_set, category_set, link_set
-
-	def clean(self, s):
-		if type(s) == unicode:
-			s = unidecode(s)
+	def extract(self, topic):
+		TYPE = self.ARTICLE	#default
+		if topic.startswith('Category'):
+			TYPE = self.CATEGORY
+			return {'type': TYPE, 'links': None, 'categories': None}
 		else:
-			s = unidecode(s.decode("utf-8", "ignore"))
-		s = urllib2.unquote(s)
-		s = re.sub(r'/wiki/', '', s)
-		s = re.sub(r'_', ' ', s)
-		s = re.sub(r'#.*', '', s)
-		return s
-
-	def contains(self, s, l):
-		for i in l:
-			if s.lower().rfind(i.lower()) >= 0:
-				return True
-		return False
-
-
-	def containsCapitals(self, s):
-		for i in s:
-			if ord('A') <= ord(i) <= ord('Z'):
-				return True
-		return False
-
-	def getType(self, topic):
-		tags = topic
-		pdict = {}
-		for t in tags:
-			parents = getParents(t)
-			for p in parents:
-				if pdict.has_key(p): pdict[p] += 1
-				else: pdict[p] = 1
-		first = sorted(pdict, key = lambda x: pdict[x], reverse = True)[0]
-		print first, pdict[first]
+			cat = self.getWikiCategories(topic)
+			if cat.intersection(set(['All_article_disambiguation_pages', 'All_disambiguation_pages', 'Disambiguation_pages'])):
+				TYPE = self.DISAMBIGUATION
+			links = self.getWikiLinks(topic)
+			cat1 = [x for x in cat if not self._contains(x, self.blacklist)]
+			links1 = [x for x in links if not self._contains(x, self.blacklist)]
+			return {'type': TYPE, 'links': links1, 'categories': cat1}
