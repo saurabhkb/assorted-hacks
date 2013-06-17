@@ -15,8 +15,11 @@ class Extractor(Util):
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=categories&format=json&redirects'
 		category_json = requests.get(url).json()
 		category_set = set()
-		for k in category_json['parse']['categories']:
-			category_set.add(self._clean(k['*']))
+		try:
+			for k in category_json['parse']['categories']:
+				category_set.add(self._clean(k['*']))
+		except Exception as e:
+			print "getWikiCategories ERROR: ", e
 		return category_set
 	
 	def getWikiLinks(self, topic):
@@ -24,9 +27,12 @@ class Extractor(Util):
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=links&section=0&format=json&redirects'
 		result_json = requests.get(url).json()
 		link_set = set()
-		for l in result_json['parse']['links']:
-			if self._contains(l['*'], self.blacklist): pass
-			else: link_set.add(self._clean(l['*']))
+		try:
+			for l in result_json['parse']['links']:
+				if self._contains(l['*'], self.blacklist): pass
+				else: link_set.add(self._clean(l['*']))
+		except Exception as e:
+			print "getWikiLinks ERROR: ", e
 		return link_set
 
 	def getAllFromCategory(self, category):
@@ -35,14 +41,17 @@ class Extractor(Util):
 		result_json = requests.get(url).json()
 		page_set = set()
 		cat_set = set()
-		for elem in result_json['query']['categorymembers']:
-			if elem['title'].startswith('Category'):
-				title = elem['title'].split(':')[1]
-				if self._contains(title, self.blacklist): pass
-				else: cat_set.add(self._clean(elem['title'].split(':')[1]))
-			else:
-				if self._contains(elem['title'], self.blacklist): pass
-				else: page_set.add(self._clean(elem['title']))
+		try:
+			for elem in result_json['query']['categorymembers']:
+				if elem['title'].startswith('Category'):
+					title = elem['title'].split(':')[1]
+					if self._contains(title, self.blacklist): pass
+					else: cat_set.add(self._clean(elem['title'].split(':')[1]))
+				else:
+					if self._contains(elem['title'], self.blacklist): pass
+					else: page_set.add(self._clean(elem['title']))
+		except Exception as e:
+			print "getAllFromCategory ERROR: ", e
 		return {'pages': page_set, 'categories': cat_set}
 
 	def extract(self, topic):

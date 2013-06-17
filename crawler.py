@@ -57,7 +57,7 @@ class Crawler(Util):
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
-		BATCH_LIM = 5
+		BATCH_LIM = 50
 
 		queue_empty = lambda: self.redis.scard(queue_key) == 0
 		seen = lambda x: self.redis.sismember(seen_key, x)
@@ -80,6 +80,7 @@ class Crawler(Util):
 				incr(current)
 				num += 1
 				for page in result['pages']:
+					print page
 					self.incr_rel(page, current, self.CATEGORY_REL)
 					incr(page)
 					NODE(batch, page, self.ARTICLE)
@@ -101,7 +102,6 @@ class Crawler(Util):
 				self.submit_batch(batch)
 				num = 0
 		if num > 0:
-			print "finally..."
 			self.submit_batch(batch)
 			num = 0
 		for k in self.redis.smembers(self.rel_key):
