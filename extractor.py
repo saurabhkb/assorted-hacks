@@ -8,6 +8,7 @@ from util import Util
 class Extractor(Util):
 	def __init__(self):
 		Util.__init__(self)
+		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk']
 
 	def getWikiCategories(self, topic):
 		topic_url = topic.replace(' ', '+')
@@ -24,8 +25,25 @@ class Extractor(Util):
 		result_json = requests.get(url).json()
 		link_set = set()
 		for l in result_json['parse']['links']:
-			link_set.add(self._clean(l['*']))
+			if self._contains(l['*'], self.blacklist): pass
+			else: link_set.add(self._clean(l['*']))
 		return link_set
+
+	def getAllFromCategory(self, category):
+		cat_url = category.replace(' ', '+')
+		url = 'http://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:{0}&cmlimit=max&cmtype=page|subcat&format=json&redirects'.format(cat_url)
+		result_json = requests.get(url).json()
+		page_set = set()
+		cat_set = set()
+		for elem in result_json['query']['categorymembers']:
+			if elem['title'].startswith('Category'):
+				title = elem['title'].split(':')[1]
+				if self._contains(title, self.blacklist): pass
+				else: cat_set.add(self._clean(elem['title'].split(':')[1]))
+			else:
+				if self._contains(elem['title'], self.blacklist): pass
+				else: page_set.add(self._clean(elem['title']))
+		return {'pages': page_set, 'categories': cat_set}
 
 	def extract(self, topic):
 		TYPE = self.ARTICLE	#default
