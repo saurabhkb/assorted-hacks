@@ -130,15 +130,10 @@ class Parser:
 		mem = r"[0-9\ ]+(GB|MB|KB|MP)"
 		s = re.sub(months, '', s)
 		s = re.sub(mem, '', s)
-		#print "BEFORE:", s
 		#for word in self.stopwords:
 		#	s = re.sub("(\ |^)" + word + "(\ |$)", "", s, flags=re.IGNORECASE)
 		#print "AFTER:", s
 		if s and self.iscapitalized(s): return s.strip()	#proper noun, so dont touch it!
-		#if len(re.findall("series|species", s)) > 0: pass
-		#elif s.endswith("ies"): s = s[:-3] + "y"
-		#elif s.endswith("es") or (s.endswith("s") and not s.endswith("ss")): s = s[:-1]
-		#elif s.endswith("ing"): s = s[:-3]
 		return s.strip()
 
 	def iscapitalized(self, s):

@@ -1,24 +1,25 @@
 from flask import Flask
 from flask import render_template
 from flask import request
-from Grapher import Grapher
 import json
 from unidecode import unidecode
+from api import Api_manager
+from constants import *
 
 app = Flask(__name__)
-g = Grapher()
+manager = Api_manager()
 
-@app.route('/')
-def root():
-	return render_template('index.html')
+@app.route('/add_user', methods = ['GET'])
+def add_user():
+	api_key = request.args.get(API_KEY)
+	user_id = request.args.get(USER_ID)
+	if not manager.authenticate(api_key):
+		return manager.error(AUTH_FAIL, 'could not validate api_key. are you sure it is correct?')
+	if not manager.valid(user_id):
+		return manager.error(INVALID_ARG, 'there is an error in one of your arguments')
+	return manager.success('successfully created user with user_id: {0}'.format(user_id))
 
-@app.route('/relate', methods = ['GET'])
-def relate():
-	keyword = request.args.get('keyword')
-	data = g.getRelatedNodes(keyword)
-	keywords = []
-	for elem in data:
-		keywords.append(unidecode(elem[0]))
-	return json.dumps({'keywords': keywords})
-
-#app.run(debug = True)
+@app.route('/score', methods = ['GET'])
+def score():
+	
+app.run(debug = True)

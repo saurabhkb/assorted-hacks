@@ -5,6 +5,7 @@ from util import Util
 
 class Matcher(Util):
 	def __init__(self):
+		Util.__init__(self)
 		self.url = lambda present_node: 'http://localhost:7474/db/data/node/{0}'.format(present_node)
 		self.template = lambda target_node: {
 			"to" : self.url(target_node),
@@ -18,12 +19,18 @@ class Matcher(Util):
 		}
 
 	def wiki_disambiguate(self, word):
+		'''disambiguate @word'''
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&prop=links&format=json&page={0}_(disambiguation)&redirects'.format(word)
 		res = requests.get(url)
 		res_json = res.json()
-		return [x for x in res_json['parse']['links']]
+		try:
+			return [self._clean(x['*']) for x in res_json['parse']['links'] if not self._contains(x['*'], self.blacklist)]
+		except Exception as e:
+			print e
+			return []
 
 	def get_shortest_path(self, n1, n2):
+		'''least cost path from n1 to n2'''
 		res = requests.post(self.url(n1._id) + '/path', data = json.dumps(self.template(n2._id)))
 		if res.status_code == requests.codes.ok:
 			return len(res_json['nodes'])
