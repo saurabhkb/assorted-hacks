@@ -25,8 +25,8 @@ class Crawler(Util):
 			)
 		else:
 			self.graphdb = neo4j.GraphDatabaseService()
-		self.graphdb.clear()
-		print "cleared database!"
+		#self.graphdb.clear()
+		#print "cleared database!"
 		self.rel_key = "REL_CREATED"
 		self.node_key = "NODE_CREATED"
 		self.max_tries = 5
@@ -62,7 +62,7 @@ class Crawler(Util):
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
-		BATCH_LIM = 5
+		BATCH_LIM = 50
 
 		queue_empty = lambda: self.redis.scard(queue_key) == 0
 		seen = lambda x: self.redis.sismember(seen_key, x)
