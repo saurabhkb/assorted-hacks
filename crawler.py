@@ -56,10 +56,11 @@ class Crawler(Util):
 	
 	def submit_batch(self, b):
 		tries = self.max_tries
-		while tries:
+		while tries > 0:
 			try:
 				b.submit()
 				b.clear()
+				print "submitted..."
 				return True
 			except Exception as e:
 				print e
@@ -69,6 +70,7 @@ class Crawler(Util):
 	def NODE(self, b, x, t):
 		#b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		b.get_or_create_indexed_node(self.node_index, 'name', x, {'name': x, 'class': t, 'freq': 0})
+		print 'created node: ', x, t
 	
 	def traverse(self, root):
 		seen_key = "URL_SEEN"
@@ -131,8 +133,13 @@ class Crawler(Util):
 		if num > 0:
 			self.submit_batch(batch)
 			num = 0
+		print "FINISHED WITH THE NODES..."
 		for k in self.redis.smembers(self.rel_key):
-			nodes = k.split(":")
+			print "REL:", k
+			nodes = k.split(":", 2)
+			if len(nodes) != 3:
+				print "bad...rel"
+				continue
 			rel = nodes[0]
 			n1 = self.node_index.get('name', nodes[1])
 			n2 = self.node_index.get('name', nodes[2])
@@ -140,6 +147,7 @@ class Crawler(Util):
 				n1 = n1[0]
 				n2 = n2[0]
 			else:
+				print "no nodes..."
 				continue
 			if rel in [self.DISAMB_REL, self.CATEGORY_REL, self.SUBCAT_REL]:
 				w = 1
