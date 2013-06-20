@@ -10,7 +10,7 @@ class Crawler(Util):
 	def __init__(self):
 		Util.__init__(self)
 
-		redis_url = os.getenv('REDISTOGO_URL', 'redis://localhost:6379')
+		redis_url = os.getenv('REDISCLOUD_URL', 'redis://localhost:6379')
 		self.redis = redis.from_url(redis_url)
 		self.redis.flushdb()
 
@@ -62,7 +62,7 @@ class Crawler(Util):
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
-		BATCH_LIM = 50
+		BATCH_LIM = 5000
 
 		queue_empty = lambda: self.redis.scard(queue_key) == 0
 		seen = lambda x: self.redis.sismember(seen_key, x)
@@ -85,20 +85,22 @@ class Crawler(Util):
 				incr(current)
 				num += 1
 				for page in result['pages']:
-					print "\tpage:", page
+					print "{0}\tpage:{1}".format(current, page)
 					self.incr_rel(page, current, self.CATEGORY_REL)
 					incr(page)
 					self.NODE(batch, page, self.ARTICLE)
 					num += 1
 					links = ex.getWikiLinks(page)
 					for a in links:
-						print "\t\tpage link:", a
+						try: print "{0}\tpage:{1}\tpage_link:{2}".format(current, page, a)
+						except Exception as e: print e
 						self.incr_rel(a, page, self.SIBLING_REL)
 						incr(a)
 						self.NODE(batch, a, self.ARTICLE)
 						num += 1
 				for subcat in result['categories']:
-					print "\t\tsubcat:", subcat
+					try: print "{0}\tsubcat:{1}".format(page, subcat)
+					except Exception as e: print e
 					self.incr_rel(subcat, current, self.SUBCAT_REL)
 					incr(subcat)
 					self.NODE(batch, subcat, self.CATEGORY)
