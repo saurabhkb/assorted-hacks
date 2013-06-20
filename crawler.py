@@ -36,10 +36,23 @@ class Crawler(Util):
 		self.disambiguation_index = self.graphdb.get_or_create_index(neo4j.Node, self.DISAMBIGUATION)
 
 	def incr_rel(self, a, b, r):
-		x = sorted([a, b])
-		key = r + ':' + x[0] + ':' + x[1]
-		self.redis.incr(key, 1)
-		self.redis.sadd(self.rel_key, key)
+		try:
+			x = sorted([a, b])
+			key = r + ':' + x[0] + ':' + x[1]
+			self.redis.incr(key, 1)
+			self.redis.sadd(self.rel_key, key)
+			return True
+		except Exception as e:
+			print "incr_rel: REDIS ERROR-------------------------", e
+			return False
+	
+	def incr(self, a):
+		try:
+			self.redis.incr(a, 1)
+			return True
+		except Exception as e:
+			print "incr: REDIS ERROR-------------------------", e
+			return False
 	
 	def submit_batch(self, b):
 		tries = self.max_tries
@@ -71,7 +84,6 @@ class Crawler(Util):
 		enqueue = lambda x: self.redis.sadd(queue_key, self._encode_str(x))
 		#NODE = lambda b, x, t: b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		REL = lambda b, n1, r, w, n2: b.get_or_create((n1, r, n2, {'class': r, 'weight': w}))
-		incr = lambda a: self.redis.incr(a, 1)
 
 		num = 0
 		enqueue(root)
@@ -82,27 +94,34 @@ class Crawler(Util):
 				visit(current)
 				result = ex.getAllFromCategory(current)
 				self.NODE(batch, current, self.CATEGORY)
-				incr(current)
+				if self.incr(current): pass
+				else: break
 				num += 1
 				for page in result['pages']:
-					print "{0}\tpage:{1}".format(current, page)
-					self.incr_rel(page, current, self.CATEGORY_REL)
-					incr(page)
+					print "{0}\tp:{1}".format(current, page)
+					if self.incr_rel(page, current, self.CATEGORY_REL): pass
+					else: break
+					if self.incr(page): pass
+					else: break
 					self.NODE(batch, page, self.ARTICLE)
 					num += 1
 					links = ex.getWikiLinks(page)
 					for a in links:
-						try: print "{0}\tpage:{1}\tpage_link:{2}".format(current, page, a)
+						try: print "{0}\tp:{1}\t{2}".format(current, page, a)
 						except Exception as e: print e
-						self.incr_rel(a, page, self.SIBLING_REL)
-						incr(a)
+						if self.incr_rel(a, page, self.SIBLING_REL): pass
+						else: break
+						if self.incr(a): pass
+						else: break
 						self.NODE(batch, a, self.ARTICLE)
 						num += 1
 				for subcat in result['categories']:
-					try: print "{0}\tsubcat:{1}".format(page, subcat)
+					try: print "{0}\tc:{1}".format(page, subcat)
 					except Exception as e: print e
-					self.incr_rel(subcat, current, self.SUBCAT_REL)
-					incr(subcat)
+					if self.incr_rel(subcat, current, self.SUBCAT_REL): pass
+					else: break
+					if self.incr(subcat): pass
+					else: break
 					self.NODE(batch, subcat, self.CATEGORY)
 					enqueue(subcat)
 					num += 1
@@ -161,7 +180,6 @@ class Crawler(Util):
 		enqueue = lambda x: self.redis.sadd(queue_key, self._encode_str(x))
 		NODE = lambda b, x, t: b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		REL = lambda b, n1, r, w, n2: b.get_or_create((n1, r, n2, {'class': r, 'weight': w}))
-		incr = lambda a: self.redis.incr(a, 1)
 
 		limit = 50000
 		num = 0
@@ -173,14 +191,14 @@ class Crawler(Util):
 				print 'topic: ', topic
 				result = ex.extract(topic)
 				NODE(batch, topic, result['type'])
-				incr(topic)
+				self.incr(topic)
 				num += 1
 				if result['type'] == self.CATEGORY:
 					pass
 				elif result['type'] == self.ARTICLE:
 					for a in result['links']:
 						self.incr_rel(a, topic, self.SIBLING_REL)
-						incr(a)
+						self.incr(a)
 						NODE(batch, a, self.ARTICLE)
 						num += 1
 						if limit > 0:

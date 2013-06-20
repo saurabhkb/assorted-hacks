@@ -18,7 +18,8 @@ class Extractor(Util):
 		category_set = set()
 		try:
 			for k in category_json['parse']['categories']:
-				category_set.add(self._clean(k['*']))
+				if self._contains(k['*'], self.blacklist): pass
+				else: category_set.add(self._clean(k['*']))
 		except Exception as e:
 			print "getWikiCategories ERROR: ", e
 		return category_set
