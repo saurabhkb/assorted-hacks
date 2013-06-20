@@ -56,7 +56,7 @@ class user(Resource):
 	def get(self, uri):
 		#get details of <id> user
 		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
-			abort(404, status = FAILURE, message = USER_NOT_FOUND)
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
 		interest_list = DataM.smembers("{0}:{1}:{2}".format(self.key, uri, INTERESTS))
 		return jsonify(status = SUCCESS, interests = list(interest_list))
 
@@ -67,7 +67,7 @@ class user(Resource):
 	def put(self, uri):
 		#update user <id>'s data
 		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
-			abort(404, status = FAILURE, message = USER_NOT_FOUND)
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
 		add_res = rem_res = []
 		try:
 			add = request.form['add']
@@ -85,13 +85,90 @@ class user(Resource):
 		return jsonify(status = SUCCESS, added = add_res, removed = rem_res)
 
 	def delete(self, uri):
-		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
-			abort(404, status = FAILURE, message = USER_NOT_FOUND)
 		#delete user <id>
+		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
 		ret_interests = DataM.delete("{0}:{1}:{2}".format(self.key, uri, INTERESTS))
 		ret_user_set = DataM.srem("{0}:{1}".format(self.key, USERS), uri)
 		return jsonify(status = SUCCESS, data = [ret_interests, ret_user_set])
 
+'''user defined stopwords'''
+def stopwords(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
+			abort(401, status = FAILURE, message = AUTH_FAIL)
+
+	def get(self):
+		sw_list = DataM.smembers("{0}:{1}".format(self.key, STOPWORDS))
+		return jsonify(status = SUCCESS, stopwords = list(sw_list))
+
+	def post(self):
+		try:
+			sws = request.form['stopwords']
+			sw_list = sws.split(",")
+			for sw in sw_list:
+				ret = DataM.sadd("{0}:{1}".format(self.key, STOPWORDS), sw)
+			return jsonify(status = SUCCESS, data = ret)
+		except KeyError:
+			abort(400, status = FAILURE, message = INVALID_ARG)
+
+	def put(self):
+		#error
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+	def delete(self):
+		#delete all users
+		ret = DataM.delete("{0}:{1}".format(self.key, STOPWORDS))
+		return jsonify(status = SUCCESS, data = ret)
+
+'''user specific stopword resource'''
+class stopword(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
+			abort(401, status = FAILURE, message = AUTH_FAIL)
+
+	def get(self, uri):
+		#get details of <id> user
+		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
+		interest_list = DataM.smembers("{0}:{1}:{2}".format(self.key, uri, STOPWORDS))
+		return jsonify(status = SUCCESS, interests = list(interest_list))
+
+	def post(self, uri):
+		#error
+		return abort(405, status = FAILURE, error = INVALID_HTTP_VERB)
+
+	def put(self, uri):
+		#update user <id>'s data
+		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
+		add_res = rem_res = []
+		try:
+			add = request.form['add']
+			rem = request.form['rem']
+			add_l = add.split(',')
+			for add_elem in add_l:
+				DataM.sadd("{0}:{1}:{2}".format(self.key, uri, STOPWORDS), add_elem)
+			add_res = add_l
+			rem_l = rem.split(',')
+			for rem_elem in rem_l:
+				DataM.srem("{0}:{1}:{2}".format(self.key, uri, STOPWORDS), rem_elem)
+			rem_res = rem_l
+		except:
+			pass
+		return jsonify(status = SUCCESS, added = add_res, removed = rem_res)
+
+	def delete(self, uri):
+		#delete user <id>
+		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
+			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
+		ret_interests = DataM.delete("{0}:{1}:{2}".format(self.key, uri, STOPWORDS))
+		return jsonify(status = SUCCESS, data = [ret_interests])
+
 api.add_resource(users, '/users')
+api.add_resource(stopwords, '/stopwords')
 api.add_resource(user, '/user/<uri>')
+api.add_resource(stopword, '/stopword/<uri>')
 app.run(debug = True)

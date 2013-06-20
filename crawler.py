@@ -6,6 +6,8 @@ from urlparse import urlparse
 from util import Util
 import sys
 
+class Break(Exception): pass
+
 class Crawler(Util):
 	def __init__(self):
 		Util.__init__(self)
@@ -43,7 +45,7 @@ class Crawler(Util):
 			self.redis.sadd(self.rel_key, key)
 			return True
 		except Exception as e:
-			print "incr_rel: REDIS ERROR-------------------------", e
+			raise Break
 			return False
 	
 	def incr(self, a):
@@ -51,7 +53,7 @@ class Crawler(Util):
 			self.redis.incr(a, 1)
 			return True
 		except Exception as e:
-			print "incr: REDIS ERROR-------------------------", e
+			raise Break
 			return False
 	
 	def submit_batch(self, b):
@@ -70,14 +72,13 @@ class Crawler(Util):
 	def NODE(self, b, x, t):
 		#b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		b.get_or_create_indexed_node(self.node_index, 'name', x, {'name': x, 'class': t, 'freq': 0})
-		print 'created node: ', x, t
 	
 	def traverse(self, root):
 		seen_key = "URL_SEEN"
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
-		BATCH_LIM = 5000
+		BATCH_LIM = 50
 
 		queue_empty = lambda: self.redis.scard(queue_key) == 0
 		seen = lambda x: self.redis.sismember(seen_key, x)
@@ -89,47 +90,46 @@ class Crawler(Util):
 
 		num = 0
 		enqueue(root)
-		while not queue_empty():
-			current = dequeue()
-			print current
-			if current and current.strip() and not seen(current):
-				visit(current)
-				result = ex.getAllFromCategory(current)
-				self.NODE(batch, current, self.CATEGORY)
-				if self.incr(current): pass
-				else: break
-				num += 1
-				for page in result['pages']:
-					print "{0}\tp:{1}".format(current, page)
-					if self.incr_rel(page, current, self.CATEGORY_REL): pass
+		try:
+			while not queue_empty():
+				current = dequeue()
+				print current
+				if current and current.strip() and not seen(current):
+					visit(current)
+					result = ex.getAllFromCategory(current)
+					self.NODE(batch, current, self.CATEGORY)
+					if self.incr(current): pass
 					else: break
-					if self.incr(page): pass
-					else: break
-					self.NODE(batch, page, self.ARTICLE)
 					num += 1
-					links = ex.getWikiLinks(page)
-					for a in links:
-						try: print "{0}\tp:{1}\t{2}".format(current, page, a)
-						except Exception as e: print e
-						if self.incr_rel(a, page, self.SIBLING_REL): pass
-						else: break
-						if self.incr(a): pass
-						else: break
-						self.NODE(batch, a, self.ARTICLE)
+					for page in result['pages']:
+						print "{0}\tp:{1}".format(current[:15], page)
+						self.incr_rel(page, current, self.CATEGORY_REL)
+						self.incr(page)
+						self.NODE(batch, page, self.ARTICLE)
 						num += 1
-				for subcat in result['categories']:
-					try: print "{0}\tc:{1}".format(page, subcat)
-					except Exception as e: print e
-					if self.incr_rel(subcat, current, self.SUBCAT_REL): pass
-					else: break
-					if self.incr(subcat): pass
-					else: break
-					self.NODE(batch, subcat, self.CATEGORY)
-					enqueue(subcat)
-					num += 1
-			if num >= BATCH_LIM:
-				self.submit_batch(batch)
-				num = 0
+						links = ex.getWikiLinks(page)
+						for a in links:
+							try: print "{0}\tp:{1}\t{2}".format(current[:15], page, a)
+							except Exception as e: print e
+							self.incr_rel(a, page, self.SIBLING_REL)
+							self.incr(a)
+							self.NODE(batch, a, self.ARTICLE)
+							num += 1
+					for subcat in result['categories']:
+						try: print "{0}\tc:{1}".format(current, subcat)
+						except Exception as e: print e
+						self.incr_rel(subcat, current, self.SUBCAT_REL)
+						self.incr(subcat)
+						self.NODE(batch, subcat, self.CATEGORY)
+						enqueue(subcat)
+						num += 1
+				if num >= BATCH_LIM:
+					self.submit_batch(batch)
+					num = 0
+		except Break:
+			pass
+		except Exception as e:
+			print e
 		if num > 0:
 			self.submit_batch(batch)
 			num = 0

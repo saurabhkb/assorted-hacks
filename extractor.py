@@ -11,6 +11,7 @@ class Extractor(Util):
 		Util.__init__(self)
 		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk']
 
+	
 	def getWikiCategories(self, topic):
 		topic_url = topic.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=categories&format=json&redirects'
