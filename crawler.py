@@ -50,6 +50,7 @@ class Crawler(Util):
 	
 	def incr(self, a):
 		try:
+			print 'creating node: %s' %(a)
 			self.redis.incr(a, 1)
 			return True
 		except Exception as e:
@@ -262,3 +263,14 @@ class Crawler(Util):
 			batch.submit()
 			batch.clear()
 			num = 0
+
+	def add_disambiguation(self, a):
+		ex = Extractor()
+		ls = ex.getDisambiguationLinks(a + '_(disambiguation)')
+		anode = self.graphdb.get_or_create_indexed_node(self.DISAMBIGUATION, 'name', a, {'name': a, 'class': self.DISAMBIGUATION})
+		for l in ls:
+			print "disambiguation link:", l
+			lnode = self.graphdb.get_indexed_node('NODE', 'name', l)
+			if lnode:
+				print "creating disamb relation betn", a, ", ", l
+				self.graphdb.create((anode, self.DISAMBIGUATION, lnode, {'class': self.DISAMBIGUATION, 'weight': 1}))

@@ -38,6 +38,20 @@ class Extractor(Util):
 			print "getWikiLinks ERROR: ", e
 		return link_set
 
+	def getDisambiguationLinks(self, topic):
+		topic_url = topic.replace(' ', '+')
+		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=links&format=json&redirects'
+		result_json = requests.get(url).json()
+		link_set = set()
+		try:
+			for l in result_json['parse']['links']:
+				if self._contains(l['*'], self.blacklist): pass
+				else: link_set.add(self._clean(l['*']))
+		except Exception as e:
+			print "getWikiLinks ERROR: ", e
+		return link_set
+
+
 	def getAllFromCategory(self, category):
 		cat_url = category.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:{0}&cmlimit=max&cmtype=page|subcat&format=json&redirects'.format(cat_url)

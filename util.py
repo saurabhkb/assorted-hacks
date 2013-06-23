@@ -24,7 +24,7 @@ class Util:
 		s = self._encode_str(s)
 		s = urllib2.unquote(s)
 		s = re.sub(r'/wiki/', '', s)
-		s = re.sub(r'_', ' ', s)
+		s = re.sub(r' ', '_', s)
 		s = re.sub(r'#.*', '', s)
 		return s
 

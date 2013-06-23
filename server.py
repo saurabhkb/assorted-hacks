@@ -2,11 +2,12 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from flask import jsonify
-from flask.ext.restful import Api, Resource, abort
+from flask.ext.restful import Api, Resource, abort, reqparse
 import json
 from unidecode import unidecode
 
 from api import Api_manager
+from learner import Learner
 from security import SecurityManager
 from constants import *
 from datastore import DataStore
@@ -16,6 +17,7 @@ api = Api(app)
 
 SecurityM = SecurityManager()
 DataM = DataStore()
+LearnM = Learner()
 
 '''users collection resource'''
 class users(Resource):
@@ -23,19 +25,23 @@ class users(Resource):
 		self.key = SecurityM.check_header(request.headers)
 		if self.key == -1:
 			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('id', type = str)
+
+		#the following two lines are only for debugging purposes!
+		self.parser.add_argument('key', type = str)
+		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
 
 	def get(self):
 		#get all users
-		user_list = DataM.smembers("{0}:{1}".format(self.key, USERS))
+		user_list = DataM.get_users_for_key(self.key)
 		return jsonify(status = SUCCESS, users = list(user_list))
 
 	def post(self):
-		try:
-			user_id = request.form['id']
-			ret = DataM.sadd("{0}:{1}".format(self.key, USERS), user_id)
-			return jsonify(status = SUCCESS, data = ret)
-		except KeyError:
-			abort(400, status = FAILURE, message = INVALID_ARG)
+		user_id = self.parser.parse_args()['id']
+		if not user_id: abort(400, status = FAILURE, message = INVALID_ARG)
+		num = DataM.create_user_for_key(self.key, user_id)
+		return jsonify(status = SUCCESS, rows_affected = num)
 
 	def put(self):
 		#error
@@ -43,8 +49,8 @@ class users(Resource):
 
 	def delete(self):
 		#delete all users
-		ret = DataM.delete("{0}:{1}".format(self.key, USERS))
-		return jsonify(status = SUCCESS, data = ret)
+		num = DataM.rem_all_users_for_key(self.key)
+		return jsonify(status = SUCCESS, rows_affected = num)
 
 '''user specific resource'''
 class user(Resource):
@@ -52,13 +58,46 @@ class user(Resource):
 		self.key = SecurityM.check_header(request.headers)
 		if self.key == -1:
 			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('add', type = str, default = [])
+		self.parser.add_argument('rem', type = str, default = [])
+		self.parser.add_argument('action', type = str, default = 'read')
+		self.parser.add_argument('keyword_args', type = str, default = "")
+		self.parser.add_argument('url_args', type = str, default = "")
+
+		#the following two lines are only for debugging purposes!
+		self.parser.add_argument('key', type = str)
+		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
 
 	def get(self, uri):
 		#get details of <id> user
-		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
+		if not DataM.is_user_for_key(self.key, uri):
 			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		interest_list = DataM.smembers("{0}:{1}:{2}".format(self.key, uri, INTERESTS))
-		return jsonify(status = SUCCESS, interests = list(interest_list))
+
+		args = self.parser.parse_args()
+		if args['action'] == 'read':
+			interest_list, length = DataM.get_interests_for_user_for_key(self.key, uri, interest_types = (SUPPLIED))
+			return jsonify(status = SUCCESS, uid = uri, num = length, interests = list(interest_list))
+
+		elif args['action'] == 'interest_score':
+			resp = {}
+			kws_toscore = args['keyword_args']
+			s = LearnM.score_all(kws_toscore.split(DELIM))
+			return jsonify(status = SUCCESS, uid = uri, num = length, score = overall)
+
+		elif args['action'] == 'classify':
+			kw_toclassify = args['keyword_args']
+			if kw_toclassify:
+				pass
+			url_toclassify = args['url_args']
+			if url_toclassify:
+				pass
+
+		elif args['action'] == 'generate':
+			interest_list, length = DataM.get_interests_for_user_for_key(self.key, uri, interest_types = (GENERATED))
+			return jsonify(status = SUCCESS, uid = uri, num_interests = length, interests = list(interest_list))
+
+		abort(400, status = FAILURE, message = INVALID_ARG)	#control should not reach here except in case of error
 
 	def post(self, uri):
 		#error
@@ -66,109 +105,23 @@ class user(Resource):
 
 	def put(self, uri):
 		#update user <id>'s data
-		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
+		if not DataM.is_user_for_key(self.key, uri):
 			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		add_res = rem_res = []
-		try:
-			add = request.form['add']
-			rem = request.form['rem']
-			add_l = add.split(',')
-			for add_elem in add_l:
-				DataM.sadd("{0}:{1}:{2}".format(self.key, uri, INTERESTS), add_elem)
-			add_res = add_l
-			rem_l = rem.split(',')
-			for rem_elem in rem_l:
-				DataM.srem("{0}:{1}:{2}".format(self.key, uri, INTERESTS), rem_elem)
-			rem_res = rem_l
-		except:
-			pass
-		return jsonify(status = SUCCESS, added = add_res, removed = rem_res)
+		args = self.parser.parse_args()
+		for add_elem in args['add'].split(DELIM):
+			DataM.add_interest_for_user_for_key(self.key, uri, add_elem)
+		for rem_elem in args['rem'].split(DELIM):
+			DataM.rem_interest_for_user_for_key(self.key, uri, rem_elem)
+		return jsonify(status = SUCCESS, added = args['add'], removed = args['rem'])
 
 	def delete(self, uri):
 		#delete user <id>
-		if not DataM.sismember("{0}:{1}".format(self.key, USERS), uri):
+		if not DataM.is_user_for_key(self.key, uri):
 			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		ret_interests = DataM.delete("{0}:{1}:{2}".format(self.key, uri, INTERESTS))
-		ret_user_set = DataM.srem("{0}:{1}".format(self.key, USERS), uri)
-		return jsonify(status = SUCCESS, data = [ret_interests, ret_user_set])
+		num = DataM.rem_user_for_key(self.key, uri)
+		return jsonify(status = SUCCESS, rows_affected = num)
 
-'''user defined stopwords'''
-def stopwords(Resource):
-	def __init__(self):
-		self.key = SecurityM.check_header(request.headers)
-		if self.key == -1:
-			abort(401, status = FAILURE, message = AUTH_FAIL)
-
-	def get(self):
-		sw_list = DataM.smembers("{0}:{1}".format(self.key, STOPWORDS))
-		return jsonify(status = SUCCESS, stopwords = list(sw_list))
-
-	def post(self):
-		try:
-			sws = request.form['stopwords']
-			sw_list = sws.split(",")
-			for sw in sw_list:
-				ret = DataM.sadd("{0}:{1}".format(self.key, STOPWORDS), sw)
-			return jsonify(status = SUCCESS, data = ret)
-		except KeyError:
-			abort(400, status = FAILURE, message = INVALID_ARG)
-
-	def put(self):
-		#error
-		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
-
-	def delete(self):
-		#delete all users
-		ret = DataM.delete("{0}:{1}".format(self.key, STOPWORDS))
-		return jsonify(status = SUCCESS, data = ret)
-
-'''user specific stopword resource'''
-class stopword(Resource):
-	def __init__(self):
-		self.key = SecurityM.check_header(request.headers)
-		if self.key == -1:
-			abort(401, status = FAILURE, message = AUTH_FAIL)
-
-	def get(self, uri):
-		#get details of <id> user
-		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
-			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		interest_list = DataM.smembers("{0}:{1}:{2}".format(self.key, uri, STOPWORDS))
-		return jsonify(status = SUCCESS, interests = list(interest_list))
-
-	def post(self, uri):
-		#error
-		return abort(405, status = FAILURE, error = INVALID_HTTP_VERB)
-
-	def put(self, uri):
-		#update user <id>'s data
-		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
-			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		add_res = rem_res = []
-		try:
-			add = request.form['add']
-			rem = request.form['rem']
-			add_l = add.split(',')
-			for add_elem in add_l:
-				DataM.sadd("{0}:{1}:{2}".format(self.key, uri, STOPWORDS), add_elem)
-			add_res = add_l
-			rem_l = rem.split(',')
-			for rem_elem in rem_l:
-				DataM.srem("{0}:{1}:{2}".format(self.key, uri, STOPWORDS), rem_elem)
-			rem_res = rem_l
-		except:
-			pass
-		return jsonify(status = SUCCESS, added = add_res, removed = rem_res)
-
-	def delete(self, uri):
-		#delete user <id>
-		if not DataM.sismember("{0}:{1}".format(self.key, STOPWORDS), uri):
-			abort(404, status = FAILURE, message = RESOURCE_NOT_FOUND)
-		ret_interests = DataM.delete("{0}:{1}:{2}".format(self.key, uri, STOPWORDS))
-		return jsonify(status = SUCCESS, data = [ret_interests])
 
 api.add_resource(users, '/users')
-api.add_resource(stopwords, '/stopwords')
 api.add_resource(user, '/user/<uri>')
-api.add_resource(stopword, '/stopword/<uri>')
 app.run(debug = True)
