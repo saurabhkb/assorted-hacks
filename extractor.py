@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import requests
-import lxml.html
-from StringIO import StringIO
 import traceback
 from util import Util
 
@@ -11,13 +9,26 @@ class Extractor(Util):
 		Util.__init__(self)
 		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk']
 
+	def getWikiBacklinks(self, topic):
+		topic_url = topic.replace(' ', '+')
+		url = 'http://en.wikipedia.org/w/api.php?action=query&list=backlinks&bltitle=' + topic_url + '&bllimit=max&blfilterredir=redirects&format=json'
+		backlink_set = set()
+		try:
+			backlink_json = requests.get(url).json()
+			for k in backlink_json['query']['backlinks']:
+				if self._contains(k['title'], self.blacklist):
+					pass
+				else: backlink_set.add(self._clean(k['title']))
+		except Exception as e:
+			print "getWikiBacklinks ERROR: ", e
+		return backlink_set
 	
 	def getWikiCategories(self, topic):
 		topic_url = topic.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=categories&format=json&redirects'
-		category_json = requests.get(url).json()
 		category_set = set()
 		try:
+			category_json = requests.get(url).json()
 			for k in category_json['parse']['categories']:
 				if self._contains(k['*'], self.blacklist): pass
 				else: category_set.add(self._clean(k['*']))
@@ -28,9 +39,9 @@ class Extractor(Util):
 	def getWikiLinks(self, topic):
 		topic_url = topic.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=links&section=0&format=json&redirects'
-		result_json = requests.get(url).json()
 		link_set = set()
 		try:
+			result_json = requests.get(url).json()
 			for l in result_json['parse']['links']:
 				if self._contains(l['*'], self.blacklist): pass
 				else: link_set.add(self._clean(l['*']))
@@ -41,9 +52,9 @@ class Extractor(Util):
 	def getDisambiguationLinks(self, topic):
 		topic_url = topic.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=parse&page=' + topic_url + '&prop=links&format=json&redirects'
-		result_json = requests.get(url).json()
 		link_set = set()
 		try:
+			result_json = requests.get(url).json()
 			for l in result_json['parse']['links']:
 				if self._contains(l['*'], self.blacklist): pass
 				else: link_set.add(self._clean(l['*']))
@@ -55,10 +66,10 @@ class Extractor(Util):
 	def getAllFromCategory(self, category):
 		cat_url = category.replace(' ', '+')
 		url = 'http://en.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:{0}&cmlimit=max&cmtype=page|subcat&format=json&redirects'.format(cat_url)
-		result_json = requests.get(url).json()
 		page_set = set()
 		cat_set = set()
 		try:
+			result_json = requests.get(url).json()
 			for elem in result_json['query']['categorymembers']:
 				if elem['title'].startswith('Category'):
 					title = elem['title'].split(':')[1]

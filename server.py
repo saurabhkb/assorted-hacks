@@ -6,21 +6,20 @@ from flask.ext.restful import Api, Resource, abort, reqparse
 import json
 from unidecode import unidecode
 
-from api import Api_manager
 from learner import Learner
 from security import SecurityManager
 from constants import *
-from datastore import DataStore
+from reldatastore import RelDataStore
 
 app = Flask(__name__)
 api = Api(app)
 
 SecurityM = SecurityManager()
-DataM = DataStore()
+DataM = RelDataStore()
 LearnM = Learner()
 
-'''users collection resource'''
-class users(Resource):
+'''Users collection resource'''
+class Users(Resource):
 	def __init__(self):
 		self.key = SecurityM.check_header(request.headers)
 		if self.key == -1:
@@ -33,7 +32,7 @@ class users(Resource):
 		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
 
 	def get(self):
-		#get all users
+		#get all Users
 		user_list = DataM.get_users_for_key(self.key)
 		return jsonify(status = SUCCESS, users = list(user_list))
 
@@ -41,7 +40,7 @@ class users(Resource):
 		user_id = self.parser.parse_args()['id']
 		if not user_id: abort(400, status = FAILURE, message = INVALID_ARG)
 		num = DataM.create_user_for_key(self.key, user_id)
-		return jsonify(status = SUCCESS, rows_affected = num)
+		return jsonify(status = SUCCESS, num_affected = num)
 
 	def put(self):
 		#error
@@ -50,10 +49,10 @@ class users(Resource):
 	def delete(self):
 		#delete all users
 		num = DataM.rem_all_users_for_key(self.key)
-		return jsonify(status = SUCCESS, rows_affected = num)
+		return jsonify(status = SUCCESS, num_affected = num)
 
 '''user specific resource'''
-class user(Resource):
+class User(Resource):
 	def __init__(self):
 		self.key = SecurityM.check_header(request.headers)
 		if self.key == -1:
@@ -82,8 +81,8 @@ class user(Resource):
 		elif args['action'] == 'interest_score':
 			resp = {}
 			kws_toscore = args['keyword_args']
-			s = LearnM.score_all(kws_toscore.split(DELIM))
-			return jsonify(status = SUCCESS, uid = uri, num = length, score = overall)
+			s = LearnM.score_all(self.key, uri, kws_toscore.split(DELIM))
+			return jsonify(status = SUCCESS, uid = uri, score = s)
 
 		elif args['action'] == 'classify':
 			kw_toclassify = args['keyword_args']
@@ -122,6 +121,50 @@ class user(Resource):
 		return jsonify(status = SUCCESS, rows_affected = num)
 
 
-api.add_resource(users, '/users')
-api.add_resource(user, '/user/<uri>')
+class NLP(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
+			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('action', type = str, default = "related")
+		self.parser.add_argument('target', type = str, default = "")
+		self.parser.add_argument('context', type = str, default = "")
+		self.parser.add_argument('limit', type = int, default = 10)
+
+
+	def get(self):
+		args = self.parser.parse_args()
+		action = args['action']
+
+		if action == "disambiguate":
+			target = args['target'].split(DELIM)
+			context = args['context'].split(DELIM)
+			ret = LearnM.disambiguate(zip(context, [1 for x in context]), zip(vague, [1 for x in target]), return_format = str)
+			if ret: 
+				return jsonify(status = SUCCESS, disambiguated = [x[0] for x in ret])
+		elif action == "related":
+			target = args['target']
+			lim = args['limit']
+			if 0 <= lim <= 100:
+				related = LearnM.get_related(target, lim)
+				if related:
+					return jsonify(status = SUCCESS, target = target, related = [{'node': x[0], 'score': x[1]} for x in related])
+			return abort(400, status = FAILURE, message = INVALID_ARG)
+
+		abort(400, status = FAILURE, message = INVALID_ARG)
+
+	def post(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+	def put(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+	def delete(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+
+api.add_resource(Users, '/personalization/users')
+api.add_resource(User, '/personalization/user/<uri>')
+api.add_resource(NLP, '/nlp')
 app.run(debug = True)

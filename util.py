@@ -4,7 +4,7 @@ import urllib2
 class Util:
 	def __init__(self):
 		self.URL_BASE = "http://en.wikipedia.org/w/api.php"
-		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template', 'wiktio', 'en.', 'file', 'help', 'stub']
+		self.blacklist = ['article', 'wikipedia', 'wiki', 'birth', 'people from', 'from', 'category', 'categories', 'pages', '.php', 'stubs', 'death', 'people', 'template', 'wiktio', 'en.', 'file', 'help', 'stub', 'list', 'disambiguation']
 		self.CATEGORY = 'category'
 		self.ARTICLE = 'topic'
 		self.DISAMBIGUATION = 'disambiguation'

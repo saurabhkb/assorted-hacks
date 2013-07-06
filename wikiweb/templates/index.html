@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block script %}
+<script>
+function putRelatedContent(k) {
+	if(!k || !k.trim()) {
+		$("#keyword").val("");
+		$("#keyword").focus();
+		return false;
+	}
+
+	$.get(
+		'/relate',
+		{'keyword': k},
+		function(data) {
+			keyword_obj = JSON.parse(data);
+			var keyword_list = keyword_obj.keywords;
+			$("#result-table").html("");
+			for(var i = 0; i < keyword_list.length; i++) {
+				$("#result-table").append("<tr><td><a href='#' class='result-link'>" + keyword_list[i] + "</a></td></tr>");
+			}
+		}
+	);
+}
+$("document").ready(
+	function() {
+		$("#keyword_submit").click(
+			function() {
+				var k = $("#keyword").val()
+				putRelatedContent(k);
+			}
+		);
+		$("body").on(
+			"click",
+			".result-link",
+			function() {
+				var k = $(this).text();
+				$("#keyword").val(k);
+				putRelatedContent(k);
+			}
+		);
+	}
+);
+</script>
+{% endblock %}
+{% block body %}
+	<input type="text" placeholder="keyword" class="textinput" id="keyword" />
+	<input type="submit" class="button" id="keyword_submit"/> 
+	<div id="result">
+		<table id="result-table">
+		</table>
+	</div>
+{% endblock %}

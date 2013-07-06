@@ -1,7 +1,7 @@
 import MySQLdb
 import json
 from constants import *
-class DataStore():
+class RelDataStore():
 	def __init__(self):
 		self.conn = MySQLdb.connect(HOST, USER, PASSWORD, DB_NAME)
 		self.cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)

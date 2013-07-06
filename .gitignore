@@ -1,2 +1,6 @@
 venv
 *.pyc
+ignore
+markov
+sema.sql
+sema.tar.gz

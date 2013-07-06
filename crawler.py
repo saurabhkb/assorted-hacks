@@ -1,20 +1,18 @@
 from extractor import Extractor
-import redis
 import os
 from py2neo import neo4j, cypher
 from urlparse import urlparse
 from util import Util
 import sys
+import md5
+from fastdatastore import FastDataStore
 
 class Break(Exception): pass
 
 class Crawler(Util):
 	def __init__(self):
 		Util.__init__(self)
-
-		redis_url = os.getenv('REDISCLOUD_URL', 'redis://localhost:6379')
-		self.redis = redis.from_url(redis_url)
-		self.redis.flushdb()
+		self.fdb = FastDataStore()
 
 		if os.environ.get('NEO4J_URL'):
 			graph_db_url = urlparse(os.environ.get('NEO4J_URL'))
@@ -41,21 +39,18 @@ class Crawler(Util):
 		try:
 			x = sorted([a, b])
 			key = r + ':' + x[0] + ':' + x[1]
-			self.redis.incr(key, 1)
-			self.redis.sadd(self.rel_key, key)
+			self.fdb.incr(key, 1)
+			self.fdb.sadd(self.rel_key, key)
 			return True
 		except Exception as e:
 			raise Break
-			return False
 	
 	def incr(self, a):
 		try:
-			print 'creating node: %s' %(a)
-			self.redis.incr(a, 1)
+			self.fdb.incr(a, 1)
 			return True
 		except Exception as e:
 			raise Break
-			return False
 	
 	def submit_batch(self, b):
 		tries = self.max_tries
@@ -63,7 +58,6 @@ class Crawler(Util):
 			try:
 				b.submit()
 				b.clear()
-				print "submitted..."
 				return True
 			except Exception as e:
 				print e
@@ -74,18 +68,18 @@ class Crawler(Util):
 		#b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		b.get_or_create_indexed_node(self.node_index, 'name', x, {'name': x, 'class': t, 'freq': 0})
 	
-	def traverse(self, root):
+	def traverse(self, root, pages = True, subcategories = True):
 		seen_key = "URL_SEEN"
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
 		BATCH_LIM = 50
 
-		queue_empty = lambda: self.redis.scard(queue_key) == 0
-		seen = lambda x: self.redis.sismember(seen_key, x)
-		visit = lambda x: self.redis.sadd(seen_key, x)
-		dequeue = lambda: self.redis.spop(queue_key)
-		enqueue = lambda x: self.redis.sadd(queue_key, self._encode_str(x))
+		queue_empty = lambda: self.fdb.scard(queue_key) == 0
+		seen = lambda x: self.fdb.sismember(seen_key, x)
+		visit = lambda x: self.fdb.sadd(seen_key, x)
+		dequeue = lambda: self.fdb.spop(queue_key)
+		enqueue = lambda x: self.fdb.sadd(queue_key, self._encode_str(x))
 		#NODE = lambda b, x, t: b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		REL = lambda b, n1, r, w, n2: b.get_or_create((n1, r, n2, {'class': r, 'weight': w}))
 
@@ -102,28 +96,30 @@ class Crawler(Util):
 					if self.incr(current): pass
 					else: break
 					num += 1
-					for page in result['pages']:
-						print "{0}\tp:{1}".format(current[:15], page)
-						self.incr_rel(page, current, self.CATEGORY_REL)
-						self.incr(page)
-						self.NODE(batch, page, self.ARTICLE)
-						num += 1
-						links = ex.getWikiLinks(page)
-						for a in links:
-							try: print "{0}\tp:{1}\t{2}".format(current[:15], page, a)
-							except Exception as e: print e
-							self.incr_rel(a, page, self.SIBLING_REL)
-							self.incr(a)
-							self.NODE(batch, a, self.ARTICLE)
+					if pages:
+						for page in result['pages']:
+							print "{0}\tp:{1}".format(current[:15], page)
+							self.incr_rel(page, current, self.CATEGORY_REL)
+							self.incr(page)
+							self.NODE(batch, page, self.ARTICLE)
 							num += 1
-					for subcat in result['categories']:
-						try: print "{0}\tc:{1}".format(current, subcat)
-						except Exception as e: print e
-						self.incr_rel(subcat, current, self.SUBCAT_REL)
-						self.incr(subcat)
-						self.NODE(batch, subcat, self.CATEGORY)
-						enqueue(subcat)
-						num += 1
+							links = ex.getWikiLinks(page)
+							for a in links:
+								try: print "{0}\tp:{1}\t{2}".format(current[:15], page, a)
+								except Exception as e: print e
+								self.incr_rel(a, page, self.SIBLING_REL)
+								self.incr(a)
+								self.NODE(batch, a, self.ARTICLE)
+								num += 1
+					if subcategories:
+						for subcat in result['categories']:
+							try: print "{0}\tc:{1}".format(current, subcat)
+							except Exception as e: print e
+							self.incr_rel(subcat, current, self.SUBCAT_REL)
+							self.incr(subcat)
+							self.NODE(batch, subcat, self.CATEGORY)
+							enqueue(subcat)
+							num += 1
 				if num >= BATCH_LIM:
 					self.submit_batch(batch)
 					num = 0
@@ -135,7 +131,7 @@ class Crawler(Util):
 			self.submit_batch(batch)
 			num = 0
 		print "FINISHED WITH THE NODES..."
-		for k in self.redis.smembers(self.rel_key):
+		for k in self.fdb.smembers(self.rel_key):
 			print "REL:", k
 			nodes = k.split(":", 2)
 			if len(nodes) != 3:
@@ -154,9 +150,9 @@ class Crawler(Util):
 				w = 1
 			else:
 				try:
-					num1_int_num2 = int(self.redis.get(k))
-					num1 = int(self.redis.get(nodes[1]))
-					num2 = int(self.redis.get(nodes[2]))
+					num1_int_num2 = int(self.fdb.get(k))
+					num1 = int(self.fdb.get(nodes[1]))
+					num2 = int(self.fdb.get(nodes[2]))
 					w = num1_int_num2 / float(num1 + num2 - num1_int_num2)
 				except Exception as e:
 					print "ERROR:", e
@@ -182,11 +178,11 @@ class Crawler(Util):
 		batch = neo4j.WriteBatch(self.graphdb)
 		BATCH_LIM = 1000
 		#cleaner method names
-		queue_empty = lambda: self.redis.scard(queue_key) == 0
-		seen = lambda x: self.redis.sismember(seen_key, x)
-		visit = lambda x: self.redis.sadd(seen_key, x)
-		dequeue = lambda: self.redis.spop(queue_key)
-		enqueue = lambda x: self.redis.sadd(queue_key, self._encode_str(x))
+		queue_empty = lambda: self.fdb.scard(queue_key) == 0
+		seen = lambda x: self.fdb.sismember(seen_key, x)
+		visit = lambda x: self.fdb.sadd(seen_key, x)
+		dequeue = lambda: self.fdb.spop(queue_key)
+		enqueue = lambda x: self.fdb.sadd(queue_key, self._encode_str(x))
 		NODE = lambda b, x, t: b.get_or_create_indexed_node(t, 'name', x, {'name': x, 'class': t})
 		REL = lambda b, n1, r, w, n2: b.get_or_create((n1, r, n2, {'class': r, 'weight': w}))
 
@@ -231,7 +227,7 @@ class Crawler(Util):
 			batch.clear()
 			num = 0
 		batch.clear()
-		for k in self.redis.smembers(self.rel_key):
+		for k in self.fdb.smembers(self.rel_key):
 			print k
 			nodes = k.split(":")
 			rel = nodes[0]
@@ -245,9 +241,9 @@ class Crawler(Util):
 				w = 1
 			else:
 				try:
-					num1_int_num2 = int(self.redis.get(k))
-					num1 = int(self.redis.get(nodes[1]))
-					num2 = int(self.redis.get(nodes[2]))
+					num1_int_num2 = int(self.fdb.get(k))
+					num1 = int(self.fdb.get(nodes[1]))
+					num2 = int(self.fdb.get(nodes[2]))
 					w = num1_int_num2 / float(num1 + num2 - num1_int_num2)
 				except Exception as e:
 					print "ERROR: ", e
@@ -267,10 +263,21 @@ class Crawler(Util):
 	def add_disambiguation(self, a):
 		ex = Extractor()
 		ls = ex.getDisambiguationLinks(a + '_(disambiguation)')
-		anode = self.graphdb.get_or_create_indexed_node(self.DISAMBIGUATION, 'name', a, {'name': a, 'class': self.DISAMBIGUATION})
-		for l in ls:
-			print "disambiguation link:", l
-			lnode = self.graphdb.get_indexed_node('NODE', 'name', l)
-			if lnode:
-				print "creating disamb relation betn", a, ", ", l
-				self.graphdb.create((anode, self.DISAMBIGUATION, lnode, {'class': self.DISAMBIGUATION, 'weight': 1}))
+		if ls:
+			anode = self.graphdb.get_or_create_indexed_node(self.DISAMBIGUATION, 'name', a, {'name': a, 'class': self.DISAMBIGUATION})
+			for l in ls:
+				print "disambiguation link:", l
+				lnode = self.graphdb.get_indexed_node('NODE', 'name', l)
+				if lnode:
+					print "creating disamb relation betn", a, ", ", l
+					self.graphdb.create((anode, self.DISAMBIGUATION, lnode, {'class': self.DISAMBIGUATION, 'weight': 1}))
+
+	def add_synset(self, word):
+		ex = Extractor()
+		word_id = md5.md5(word).hexdigest()
+		if not self.fdb.get(word_id):
+			self.fdb.set(ROOT + word_id, word)
+		synset = ex.getWikiBacklinks(word)
+		if synset:
+			for synonym in synset:
+				self.fdb.set(SYN + synonym.upper(), word_id)
