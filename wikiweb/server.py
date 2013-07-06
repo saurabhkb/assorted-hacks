@@ -21,4 +21,4 @@ def relate():
 		keywords.append(unidecode(elem[0]))
 	return json.dumps({'keywords': keywords})
 
-app.run(debug = True, port = 2000)
+app.run(debug = True)
