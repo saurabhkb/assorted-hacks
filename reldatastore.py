@@ -3,6 +3,7 @@ import json
 from constants import *
 class RelDataStore():
 	def __init__(self):
+		print 'connecting with credentials: ', HOST, ", ", USER, ", ", DB_NAME
 		self.conn = MySQLdb.connect(HOST, USER, PASSWORD, DB_NAME)
 		self.cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
 	
