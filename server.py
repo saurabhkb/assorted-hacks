@@ -18,6 +18,19 @@ SecurityM = SecurityManager()
 DataM = RelDataStore()
 LearnM = Learner()
 
+class Home(Resource):
+	def get(self):
+		return "Hello World"
+	def post(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+	def put(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+	def delete(self):
+		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+
 '''Users collection resource'''
 class Users(Resource):
 	def __init__(self):
@@ -172,6 +185,7 @@ class NLP(Resource):
 		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
 
 
+api.add_resource(Home, '/')
 api.add_resource(Users, '/personalization/users')
 api.add_resource(User, '/personalization/user/<uri>')
 api.add_resource(NLP, '/nlp')
