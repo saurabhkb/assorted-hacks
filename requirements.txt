@@ -1,11 +1,13 @@
 Flask==0.9
+Flask-RESTful==0.2.3
 Jinja2==2.7
 MarkupSafe==0.18
+MySQL-python==1.2.4
 PyYAML==3.10
 Unidecode==0.04.13
 Werkzeug==0.8.3
 argparse==1.2.1
-distribute==0.6.24
+distribute==0.7.3
 gunicorn==0.17.4
 lxml==3.2.1
 nltk==2.0.4
@@ -14,4 +16,3 @@ py2neo==1.5
 redis==2.7.5
 requests==1.2.3
 wsgiref==0.1.2
-newrelic
