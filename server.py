@@ -80,7 +80,7 @@ class User(Resource):
 		args = self.parser.parse_args()
 		if args['action'] == 'read':
 			interest_list, length = DataM.get_interests_for_user_for_key(self.key, uri, interest_types = (SUPPLIED))
-			return jsonify(status = SUCCESS, uid = uri, num = length, interests = list(interest_list))
+			return jsonify(status = SUCCESS, uid = uri, num_interests = length, interests = list(interest_list))
 
 		elif args['action'] == 'interest_score':
 			resp = {}
@@ -175,4 +175,4 @@ class NLP(Resource):
 api.add_resource(Users, '/personalization/users')
 api.add_resource(User, '/personalization/user/<uri>')
 api.add_resource(NLP, '/nlp')
-#app.run(debug = True)
+app.run(debug = True)
