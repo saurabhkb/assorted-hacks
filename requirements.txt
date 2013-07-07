@@ -3,7 +3,7 @@ Flask==0.9
 Flask-RESTful==0.2.3
 Jinja2==2.7
 MarkupSafe==0.18
-MySQL-python==1.2.4
+MySQL-python==1.2.2
 PyYAML==3.10
 Unidecode==0.04.13
 Werkzeug==0.8.3
