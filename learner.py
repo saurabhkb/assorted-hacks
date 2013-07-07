@@ -6,6 +6,7 @@ from util import Util
 from reldatastore import RelDataStore
 from fastdatastore import FastDataStore
 from constants import *
+from urlparse import urlparse
 
 class Learner(Util):
 	def __init__(self):
