@@ -30,6 +30,8 @@ class Users(Resource):
 		#the following two lines are only for debugging purposes!
 		self.parser.add_argument('key', type = str)
 		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
+		if not SecurityM.bogus_check_key(self.key):
+			abort(401, status = FAILURE, message = AUTH_FAIL)
 
 	def get(self):
 		#get all Users
@@ -67,6 +69,8 @@ class User(Resource):
 		#the following two lines are only for debugging purposes!
 		self.parser.add_argument('key', type = str)
 		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
+		if not SecurityM.bogus_check_key(self.key):
+			abort(401, status = FAILURE, message = AUTH_FAIL)
 
 	def get(self, uri):
 		#get details of <id> user
@@ -132,6 +136,10 @@ class NLP(Resource):
 		self.parser.add_argument('context', type = str, default = "")
 		self.parser.add_argument('limit', type = int, default = 10)
 
+		self.parser.add_argument('key', type = str)
+		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
+		if not SecurityM.bogus_check_key(self.key):
+			abort(401, status = FAILURE, message = AUTH_FAIL)
 
 	def get(self):
 		args = self.parser.parse_args()
@@ -167,4 +175,4 @@ class NLP(Resource):
 api.add_resource(Users, '/personalization/users')
 api.add_resource(User, '/personalization/user/<uri>')
 api.add_resource(NLP, '/nlp')
-app.run(debug = True)
+#app.run(debug = True)
