@@ -4,8 +4,11 @@ from constants import *
 class RelDataStore():
 	def __init__(self):
 		print 'connecting with credentials: ', HOST, ", ", USER, ", ", DB_NAME
-		self.conn = MySQLdb.connect(HOST, USER, PASSWORD, DB_NAME)
-		self.cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
+		try:
+			self.conn = MySQLdb.connect(HOST, USER, PASSWORD, DB_NAME)
+			self.cursor = self.conn.cursor(MySQLdb.cursors.DictCursor)
+		except Exception as e:
+			print "DB CONNECTION EXCEPTION: ", e
 	
 	def get_users_for_key(self, key):
 		self.cursor.execute('select `uid` from `user` where `key` = %s' % (key))

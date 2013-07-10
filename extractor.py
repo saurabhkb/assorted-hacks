@@ -9,9 +9,9 @@ class Extractor(Util):
 		Util.__init__(self)
 		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk']
 
-	def getWikiBacklinks(self, topic):
+	def getWikiBacklinks(self, topic, filter = "redirects"):
 		topic_url = topic.replace(' ', '+')
-		url = 'http://en.wikipedia.org/w/api.php?action=query&list=backlinks&bltitle=' + topic_url + '&bllimit=max&blfilterredir=redirects&format=json'
+		url = 'http://en.wikipedia.org/w/api.php?action=query&list=backlinks&bltitle=' + topic_url + '&bllimit=max&blfilterredir=' + filter + '&format=json'
 		backlink_set = set()
 		try:
 			backlink_json = requests.get(url).json()

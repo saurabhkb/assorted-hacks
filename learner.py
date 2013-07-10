@@ -7,6 +7,8 @@ from reldatastore import RelDataStore
 from fastdatastore import FastDataStore
 from constants import *
 from urlparse import urlparse
+from math import *
+from extractor import Extractor
 
 class Learner(Util):
 	def __init__(self):
@@ -54,20 +56,25 @@ class Learner(Util):
 		print "WORD:", word
 		data, metadata = cypher.execute(self.graphdb, 'start n=node:%s(name="%s") match n-[]-m return m' % (self.DISAMBIGUATION, word))
 		if data:
-			return [d[0]['name'] for d in data], [d[0] for d in data]
+			print data
+			return [d[0] for d in data]
 		res = self.disambiguation_index.query("name:%s~" % word)
 		if res:
-			return [d[0]['name'] for d in res if d[0]], [d[0] for d in data]
+			print res
+			return [d[0] for d in data]
 		res = self.disambiguation_index.query("name:%s*" % word)
 		if res:
-			return [d[0]['name'] for d in res if d[0]], [d[0] for d in data]
+			print res
+			return [d[0] for d in data]
 		data, metadata = cypher.execute(self.graphdb, 'START root=node(*) WHERE root.name=~".*%s.*" RETURN root' % word)
 		if data:
-			return [d[0]['name'] for d in data], [d[0] for d in data]
-		return [], []
+			print data
+			return [d[0] for d in data]
+		return []
 
 	def get_syn_root(self, word):
 		''' return the root node corresponding to the synonym word '''
+		print word
 		word = word.upper().replace(' ', '_')
 		fdb = FastDataStore()
 		word_id = fdb.get(SYN + word)
@@ -81,76 +88,74 @@ class Learner(Util):
 		2. if that fails, the values already present in uid's interests in the datastore
 		3. if even that fails, random choice
 
-		precise => list of (neo4j.Node, interest_level) objects
-		vague => list of (string, interest_level) objects to be converted into (neo4j.Node, interest_level) objects
+		precise => list of neo4j.Node objects
+		vague => list of string objects to be converted into neo4j.Node objects
 		'''
+		getnode = lambda x: self.graphdb.get_indexed_node('NODE', 'name', x)
 		new_vague = []
-		for word, interest_level in vague:
-			print "syn: ", word
+		resolved = []
+		for word in vague:
 			#try trivial synsets
 			root = self.get_syn_root(word)
 			if root:
-				print "root: ", root
-				node = getnode(root)
-				resolved.append((node, interest_level))
-			else:
-				new_vague.append((word, interest_level))
+				resolved.append(getnode(root))
+				continue
+
+			root = getnode(word)
+			if root:
+				resolved.append(root)
+				continue
+			new_vague.append(word)
 
 		if not new_vague:
 			if return_format == str and resolved:
-				resolved = [(x[0]['name'], x[1]) for x in resolved]
+				resolved = [x['name'] for x in resolved]
 			return resolved
 			
-		getnode = lambda x: self.graphdb.get_indexed_node('NODE', 'name', x)
 		#first make list of precise node objects (by default already there)
 		precise_nodes = []
-		for p, interest in precise:
+		for p in precise:
 			if type(p) == neo4j.Node:
-				precise_nodes.append((p, interest))
+				precise_nodes.append(p)
 			else:
 				n = getnode(p)
-				if not n: return None
-				else: precise_nodes.append((n, interest))
+				if not n: new_vague.append(p)
+				else: precise_nodes.append(n)
 
 		#then start the steps of disambiguation
-		resolved = []
-		for word, interest_level in new_vague:
-			print 'vague word: ', word
-			
+		for word in new_vague:
 			#try all possible meanings via disambiguation index
-			meanings, meaning_nodes = self.get_all_meanings(word)
-			if meanings and meaning_nodes and precise_nodes:
+			meaning_nodes = self.get_all_meanings(word)
+			if meaning_nodes and precise_nodes:
+				print "CHECKING CONTEXT"
 				#a disambiguation node exists for this word
-				scores = []
-				for meaning, meaning_node in zip(meanings, meaning_nodes):
-					scores.append((meaning_node, self.graph_distance([(meaning_node, interest_level)], precise_nodes)))
-				min_score = min(scores, key = lambda x: x[1])[1]
-				minlist = [(x[0], self.get_degree(x[0])) for x in scores if x[1] == min_score]
-				resolved_meaning = max(minlist, key = lambda x: x[1])
-				node = resolved_meaning[0]
-				resolved.append((node, interest_level))
+				scores = [{'node': meaning_node, 'dist': self.graph_distance([meaning_node], precise_nodes)} for meaning_node in meaning_nodes]
+				print [(x['node']['name'], x['dist']) for x in scores]
+				min_dist = min(scores, key = lambda x: x['dist'])['dist']
+				minlist = [{'node': x['node'], 'deg': self.get_degree(x['node'])} for x in scores if x['dist'] == min_dist]
+				node = max(minlist, key = lambda x: x['deg'])['node']
+				print "resolved: ", node['name']
+				resolved.append(node)
 				continue
 
 			if history:
 				print "CHECKING HISTORY"
-				history_nodes = [(getnode(x['interest']), x['interest_level']) for x in history]
+				history_nodes = [getnode(x['interest']) for x in history]
 				#a disambiguation node exists for this word
-				scores = []
-				for meaning, meaning_node in zip(meanings, meaning_nodes):
-					scores.append((meaning_node, self.graph_distance([(meaning_node, interest_level)], history_nodes)))
-				min_score = min(scores, key = lambda x: x[1])[1]
-				minlist = [(x[0], self.get_degree(x[0])) for x in scores if x[1] == min_score]
-				resolved_meaning = max(minlist, key = lambda x: x[1])
-				node = resolved_meaning[0]
-				resolved.append((node, interest_level))
+				scores = [{'node': meaning_node, 'dist': self.graph_distance([meaning_node], history_nodes)} for meaning_node in meaning_nodes]
+				min_dist = min(scores, key = lambda x: x['dist'])['dist']
+				minlist = [{'node': x['node'], 'deg': self.get_degree(x['node'])} for x in scores if x['dist'] == min_dist]
+				node = max(minlist, key = lambda x: x['deg'])['node']
+				resolved.append(node)
 				continue
 
-			if meanings and meaning_nodes:
-				resolved.append((meaning_nodes[0], interest_level))
+			if meaning_nodes:
+				resolved.append(meaning_nodes[0])
 
 		if return_format == str and resolved:
-			resolved = [(x[0]['name'], x[1]) for x in resolved]
+			resolved = [x['name'] for x in resolved]
 
+		print "resolved:", resolved
 		return resolved
 
 	def get_degree(self, node):
@@ -159,84 +164,34 @@ class Learner(Util):
 		
 	def get_shortest_path(self, n1, n2):
 		'''least cost path from n1 to n2. Type of n1, n2 = neo4j.Node'''
-		print n1, n2
-		print n1['name'], n2['name']
 		res = requests.post(self._url(n1._id) + '/path', data = json.dumps(self._template(n2._id)))
 		res_json = res.json()
 		if res.status_code == requests.codes.ok:
 			#print res_json
-			return res_json['weight'] + 1
+			return res_json['length'] + 1
 		else:
 			return self.INF
-
-	def updateGraph(node_a, node_b, inc_a = 1, inc_b = 0, inc_ab = 0):
-		'''
-		wt_ab = [wt_ab * (wt_a + wt_b) + inc_ab * (wt_ab + 1)] / [wt_a + wt_b + (inc_a + inc_b - inc_ab) * (wt_ab + 1)]
-		wt_a = wt_a + inc_a
-		wt_b = wt_b + inc_b
-		'''
-		if not node_a: return False
-		if node_b:
-			#therefore, the a-b relationship has to be updated in a more special manner
-			cypher.execute("""
-					start n=node:NODE(name=%s), m=node:NODE(name=%s)
-					match n-[r:sibling]-m
-					set r.weight = [r.weight * (n.weight + m.weight) + %d * (r.weight + 1)] / [n.weight + m.weight + (%d + %d - %d) * (r.weight + 1)]""" % (node_a, node_b, inc_ab, inc_a, inc_b, inc_ab))
-			#update b's relationships as well, dont touch its relationship with a
-			cypher.execute("""
-					start n=node:NODE(name=%s),
-					match n-[r:sibling]-m
-					where m.name != %s
-					set r.weight = r.weight * (n.weight + m.weight) / [n.weight + m.weight + r.weight + 1]
-					""" % (node_b, node_a))
-			#update a's relationships as well, dont touch its relationship with b
-			cypher.execute("""
-					start n=node:NODE(name=%s),
-					match n-[r:sibling]-m
-					where m.name != %s
-					set r.weight = r.weight * (n.weight + m.weight) / [n.weight + m.weight + r.weight + 1]
-					""" % (node_a, node_b))
-			#update a and b weights
-			cypher.execute("""
-					start n=node:NODE(name=%s), m=node:NODE(name=%s)
-					set n.weight = n.weight + %d
-					set m.weight = m.weight + %d
-					""" % (node_a, node_b, inc_a, inc_b))
-		else:
-			#only update a's relationships
-			cypher.execute("""
-				start n=node:NODE(name=%s),
-				match n-[r:sibling]-m
-				set r.weight = r.weight * (n.weight + m.weight) / [n.weight + m.weight + r.weight + 1]
-				""" % (node_a,))
-			cypher.execute("""
-					start n=node:NODE(name=%s)
-					set n.weight = n.weight + %d
-					""" % (node_a, inc_a))
-
 
 	def graph_distance(self, target_nodes, present_nodes):
 		'''
 		target_nodes is a vector (lists) of node objects whose cumulative score is to be determined
-		present_nodes is a vector of tuples of the form (<Node Object>, <interest level>)
+		present_nodes is a vector of <Node Object>s
 		'''
 		#target_nodes = [self.graphdb.get_indexed_node('NODE', 'name', x) for x in target]
 		#present_nodes = [self.graphdb.get_indexed_node('NODE', 'name', x) for x in present]
 		score_1 = 0
 		score_2 = 0
-		print "TN:", target_nodes
-		print "PN:", present_nodes
-		for tnode, tinterest in target_nodes:
+		for tnode in target_nodes:
 			l = self.INF
-			for pnode, pinterest in present_nodes:
-				dist = self.get_shortest_path(tnode, pnode) / float(tinterest)
+			for pnode in present_nodes:
+				dist = self.get_shortest_path(tnode, pnode)
 				if l > dist: l = dist
 			if l != self.INF: score_1 += l
 		score_1 /= float(len(target_nodes))
-		for pnode, pinterest in present_nodes:
+		for pnode in present_nodes:
 			l = self.INF
-			for tnode, tinterest in target_nodes:
-				dist = self.get_shortest_path(tnode, pnode) / float(pinterest)
+			for tnode in target_nodes:
+				dist = self.get_shortest_path(tnode, pnode)
 				if l > dist: l = dist
 			if l != self.INF: score_2 += l
 		score_2 /= float(len(present_nodes))
@@ -257,20 +212,20 @@ class Learner(Util):
 		for kw in kwlist:
 			n = self.graphdb.get_indexed_node(self.DISAMBIGUATION, 'name', kw)
 			if n:
-				vague.append((kw, 1))
+				vague.append(kw)
 			else:
 				m = getnode(kw)
 				if m:
-					precise.append((m, 1))
+					precise.append(m)
 				else:
-					vague.append((kw, 1))
+					vague.append(kw)
 		print "vague: ", vague
 		print "precise: ", precise
 		if vague:
 			precise = self.disambiguate(precise, vague, ret)
 		#precise now contains all nodes corresponding to the given keywords
 		print "FINAL PRECISE:", precise
-		s = self.graph_distance(precise, [(getnode(x['interest']), x['interest_level']) for x in ret])
+		s = self.graph_distance(precise, [getnode(x['interest']) for x in ret])
 		return 1 / float(s)
 
 	def get_related(self, word, limit = 10, return_format = str):
@@ -283,3 +238,30 @@ class Learner(Util):
 				return sorted([(d[0], d[1]) for d in data], key = lambda x: x[0])
 		else:
 			return None
+
+	def getSemanticDistance(self, a, b):
+		na = self.graphdb.get_indexed_node('NODE', 'name', a)
+		nb = self.graphdb.get_indexed_node('NODE', 'name', b)
+		if na and nb:
+			return self.get_shortest_path(na, nb)
+		else:
+			return -1
+
+	def getWikiDist(self, a, b):
+		a = a.replace(' ', '_')
+		b = b.replace(' ', '_')
+		e = Extractor()
+		sa = e.getWikiBacklinks(a, filter = "nonredirects")
+		sb = e.getWikiBacklinks(b, filter = "nonredirects")
+		n1 = log(max(len(sa), len(sb)))
+		n2 = log(len(set.intersection(sa, sb)))
+		d1 = log(10 ** 7)
+		d2 = log(min(len(sa), len(sb)))
+		extra1 = extra2 = 0
+		#if a in sb: extra1 = log(10 ** 7 / len(sb))
+		#if b in sa: extra2 = log(10 ** 7 / len(sa))
+		try:
+			return (n1 - n2) / float(d1 - d2)
+		except ZeroDivisionError as e:
+			print e
+			return self.INF

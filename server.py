@@ -161,9 +161,9 @@ class NLP(Resource):
 		if action == "disambiguate":
 			target = args['target'].split(DELIM)
 			context = args['context'].split(DELIM)
-			ret = LearnM.disambiguate(zip(context, [1 for x in context]), zip(vague, [1 for x in target]), return_format = str)
+			ret = LearnM.disambiguate(context, target, return_format = str)
 			if ret: 
-				return jsonify(status = SUCCESS, disambiguated = [x[0] for x in ret])
+				return jsonify(status = SUCCESS, disambiguated = ret)
 		elif action == "related":
 			target = args['target']
 			lim = args['limit']
@@ -171,7 +171,7 @@ class NLP(Resource):
 				related = LearnM.get_related(target, lim)
 				if related:
 					return jsonify(status = SUCCESS, target = target, related = [{'node': x[0], 'score': x[1]} for x in related])
-			return abort(400, status = FAILURE, message = INVALID_ARG)
+		return abort(400, status = FAILURE, message = INVALID_ARG)
 
 		abort(400, status = FAILURE, message = INVALID_ARG)
 
@@ -189,4 +189,4 @@ api.add_resource(Home, '/')
 api.add_resource(Users, '/personalization/users')
 api.add_resource(User, '/personalization/user/<uri>')
 api.add_resource(NLP, '/nlp')
-#app.run(debug = True)
+app.run(debug = True)
