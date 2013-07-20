@@ -4,3 +4,4 @@ ignore
 markov
 sema.sql
 sema.tar.gz
+python-goose
