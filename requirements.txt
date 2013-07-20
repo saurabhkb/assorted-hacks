@@ -11,7 +11,6 @@ Unidecode==0.04.13
 Werkzeug==0.8.3
 argparse==1.2.1
 cssselect==0.8
-distribute==0.7.3
 gunicorn==0.17.4
 ipython==0.13.2
 jieba==0.30
