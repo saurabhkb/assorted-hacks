@@ -137,56 +137,102 @@ class User(Resource):
 		num = DataM.rem_user_for_key(self.key, uri)
 		return jsonify(status = SUCCESS, rows_affected = num)
 
-
-class NLP(Resource):
+class Disambiguator(Resource):
 	def __init__(self):
 		self.key = SecurityM.check_header(request.headers)
 		if self.key == -1:
 			abort(401, status = FAILURE, message = AUTH_FAIL)
 		self.parser = reqparse.RequestParser()
-		self.parser.add_argument('action', type = str, default = "related")
 		self.parser.add_argument('target', type = str, default = "")
 		self.parser.add_argument('context', type = str, default = "")
-		self.parser.add_argument('limit', type = int, default = 10)
 
-		self.parser.add_argument('key', type = str)
-		if self.parser.parse_args()['key']: self.key = self.parser.parse_args()['key']
-		if not SecurityM.bogus_check_key(self.key):
+	def get(self):
+		target = args['target'].split(DELIM)
+		context = args['context'].split(DELIM)
+		ret = LearnM.disambiguate(context, target, return_format = str)
+		if ret: 
+			return jsonify(status = SUCCESS, disambiguated = ret)
+		else:
+			abort(400, status = FAILURE, message = INVALID_ARG)
+
+
+
+class Related_Terms(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
 			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('target', type = str, default = "")
+		self.parser.add_argument('limit', type = int, default = 10)
 
 	def get(self):
 		args = self.parser.parse_args()
-		action = args['action']
+		target = args['target']
+		lim = args['limit']
+		if 0 <= lim <= 100:
+			related = LearnM.get_related(target, lim)
+			if related:
+				return jsonify(status = SUCCESS, target = target, related = [{'node': x[0], 'score': x[1]} for x in related])
+		else:
+			abort(400, status = FAILURE, message = INVALID_ARG)
 
-		if action == "disambiguate":
-			target = args['target'].split(DELIM)
-			context = args['context'].split(DELIM)
-			ret = LearnM.disambiguate(context, target, return_format = str)
-			if ret: 
-				return jsonify(status = SUCCESS, disambiguated = ret)
-		elif action == "related":
-			target = args['target']
-			lim = args['limit']
-			if 0 <= lim <= 100:
-				related = LearnM.get_related(target, lim)
-				if related:
-					return jsonify(status = SUCCESS, target = target, related = [{'node': x[0], 'score': x[1]} for x in related])
-		return abort(400, status = FAILURE, message = INVALID_ARG)
+	def post(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def put(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def delete(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
 
-		abort(400, status = FAILURE, message = INVALID_ARG)
 
-	def post(self):
-		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+class Keyphrase_Extractor(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
+			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('text', type = str, default = "")
+		self.parser.add_argument('url', type = str, default = "")
 
-	def put(self):
-		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+	def get(self):
+		args = self.parser.parse_args()
+		text = args['text']
+		url = args['url']
+		if text:
+			k = LearnM.extract_keyphrases(text, "text")
+			return jsonify(status = SUCCESS, keyphrases = k)
+		elif url:
+			k = LearnM.extract_keyphrases(url, "url")
+			return jsonify(status = SUCCESS, Keyphrases = k)
+		else:
+			abort(400, status = FAILURE, message = INVALID_ARG)
 
-	def delete(self):
-		abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+	def post(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def put(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def delete(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
+
+class Text_Extractor(Resource):
+	def __init__(self):
+		self.key = SecurityM.check_header(request.headers)
+		if self.key == -1:
+			abort(401, status = FAILURE, message = AUTH_FAIL)
+		self.parser = reqparse.RequestParser()
+		self.parser.add_argument('url', type = str, default = "")
+
+	def get(self):
+		args = self.parser.parse_args()
+		url = args['url']
+		if url:
+			txt = LearnM.getURLText(url)
+			return jsonify(status = SUCCESS, text = txt)
+
+	def post(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def put(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB) 
+	def delete(self): abort(405, status = FAILURE, message = INVALID_HTTP_VERB)
 
 
 api.add_resource(Home, '/')
 api.add_resource(Users, '/personalization/users')
 api.add_resource(User, '/personalization/user/<uri>')
-api.add_resource(NLP, '/nlp')
-app.run(debug = True)
+api.add_resource(Keyphrase_Extractor, '/nlp/keyphrase_extract')
+api.add_resource(Text_Extractor, '/nlp/text_extract')
+api.add_resource(Related_Terms, '/nlp/related')
+api.add_resource(Disambiguator, '/nlp/disambiguate')
+#app.run(debug = True, port = 8000)

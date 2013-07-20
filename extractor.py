@@ -7,7 +7,7 @@ from util import Util
 class Extractor(Util):
 	def __init__(self):
 		Util.__init__(self)
-		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk']
+		self.blacklist += ['by country', 'by area', 'by region', 'by continent', 'user:', 'portal:', 'talk', 'name']
 
 	def getWikiBacklinks(self, topic, filter = "redirects"):
 		topic_url = topic.replace(' ', '+')

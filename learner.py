@@ -9,6 +9,7 @@ from constants import *
 from urlparse import urlparse
 from math import *
 from extractor import Extractor
+from parser import Parser
 
 class Learner(Util):
 	def __init__(self):
@@ -247,21 +248,13 @@ class Learner(Util):
 		else:
 			return -1
 
-	def getWikiDist(self, a, b):
-		a = a.replace(' ', '_')
-		b = b.replace(' ', '_')
-		e = Extractor()
-		sa = e.getWikiBacklinks(a, filter = "nonredirects")
-		sb = e.getWikiBacklinks(b, filter = "nonredirects")
-		n1 = log(max(len(sa), len(sb)))
-		n2 = log(len(set.intersection(sa, sb)))
-		d1 = log(10 ** 7)
-		d2 = log(min(len(sa), len(sb)))
-		extra1 = extra2 = 0
-		#if a in sb: extra1 = log(10 ** 7 / len(sb))
-		#if b in sa: extra2 = log(10 ** 7 / len(sa))
-		try:
-			return (n1 - n2) / float(d1 - d2)
-		except ZeroDivisionError as e:
-			print e
-			return self.INF
+	def extract_keyphrases(self, data, type = "text"):
+		p = Parser()
+		if type == "text":
+			return list(p.parseText(data)[0])
+		elif type == "url":
+			return list(p.parseURLText(data)[0])
+
+	def getURLText(self, url):
+		p = Parser()
+		return p.getURLText(url)

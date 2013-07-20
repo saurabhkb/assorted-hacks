@@ -6,6 +6,7 @@ from util import Util
 import sys
 import md5
 from fastdatastore import FastDataStore
+from math import log
 
 class Break(Exception): pass
 
@@ -30,6 +31,8 @@ class Crawler(Util):
 		self.rel_key = "REL_CREATED"
 		self.node_key = "NODE_CREATED"
 		self.max_tries = 5
+		self.BATCH_LIM = 50
+		self.counter = 0
 		self.node_index = self.graphdb.get_or_create_index(neo4j.Node, 'NODE')
 		self.disambiguation_index = self.graphdb.get_or_create_index(neo4j.Node, self.DISAMBIGUATION)
 
@@ -43,20 +46,29 @@ class Crawler(Util):
 		except Exception as e:
 			raise Break
 	
-	def submit_batch(self, b):
-		tries = self.max_tries
-		while tries > 0:
-			try:
-				b.submit()
-				b.clear()
-				return True
-			except Exception as e:
-				print e
-			tries -= 1
-		return False
+	def updateBatch(self, b, type = neo4j.Node, node = None, rel = None):
+		def submit_batch():
+			tries = self.max_tries
+			while tries > 0:
+				try:
+					b.submit()
+					b.clear()
+					self.counter = 0
+					return True
+				except Exception as e:
+					print e
+				tries -= 1
+			return False	
+		if type == neo4j.Node and node:
+			b.get_or_create_indexed_node(self.node_index, 'name', node['name'], {'name': node['name'], 'class': node['class']})
+		elif type == neo4j.Relationship and rel:
+			b.get_or_create((rel['node1'], rel['rel'], rel['node2'], {'class': rel['rel'], 'weight': rel['weight']}))
+		else: return submit_batch()
 
-	def NODE(self, b, x, t):
-		b.get_or_create_indexed_node(self.node_index, 'name', x, {'name': x, 'class': t})
+		self.counter += 1
+		if self.counter > self.BATCH_LIM:
+			return submit_batch()
+
 			
 	def spider(self, root, pages = True, subcategories = True, action = "traverse", preclean = False, depth = 1):
 		if preclean: self.graphdb.clear()
@@ -64,16 +76,13 @@ class Crawler(Util):
 		queue_key = "URL_QUEUE"
 		ex = Extractor()
 		batch = neo4j.WriteBatch(self.graphdb)
-		BATCH_LIM = 50
 
 		queue_empty = lambda: self.fdb.scard(queue_key) == 0
 		seen = lambda x: self.fdb.sismember(seen_key, x)
 		visit = lambda x: self.fdb.sadd(seen_key, x)
 		dequeue = lambda: self.fdb.spop(queue_key)
 		enqueue = lambda x: self.fdb.sadd(queue_key, self._encode_str(x))
-		REL = lambda b, n1, r, w, n2: b.get_or_create((n1, r, n2, {'class': r, 'weight': w}))
 
-		num = 0
 		if action == "traverse":
 			enqueue(root)
 			while not queue_empty():
@@ -82,30 +91,23 @@ class Crawler(Util):
 				if current and current.strip() and not seen(current):
 					visit(current)
 					result = ex.getAllFromCategory(current)
-					self.NODE(batch, current, self.CATEGORY)
-					num += 1
+					self.updateBatch(batch, type = neo4j.Node, node = {'name': current, 'class': self.CATEGORY})
 					if pages:
 						for page in result['pages']:
 							print "{0}\tp:{1}".format(current[:15], page)
 							self.incr_rel(page, current, self.CATEGORY_REL)
-							self.NODE(batch, page, self.ARTICLE)
-							num += 1
+							self.updateBatch(batch, type = neo4j.Node, node = {'name': page, 'class': self.ARTICLE})
 							links = ex.getWikiLinks(page)
 							for a in links:
 								print "{0}\tp:{1}\t{2}".format(current[:15], page, a)
 								self.incr_rel(a, page, self.SIBLING_REL)
-								self.NODE(batch, a, self.ARTICLE)
-								num += 1
+								self.updateBatch(batch, type = neo4j.Node, node = {'name': a, 'class': self.ARTICLE})
 					if subcategories:
 						for subcat in result['categories']:
 							print "{0}\tc:{1}".format(current, subcat)
 							self.incr_rel(subcat, current, self.SUBCAT_REL)
-							self.NODE(batch, subcat, self.CATEGORY)
+							self.updateBatch(batch, type = neo4j.Node, node = {'name': subcat, 'class': self.CATEGORY})
 							enqueue(subcat)
-							num += 1
-				if num >= BATCH_LIM:
-					self.submit_batch(batch)
-					num = 0
 		elif action == "crawl":
 			enqueue(root)
 			while not queue_empty():
@@ -114,60 +116,33 @@ class Crawler(Util):
 					visit(topic)
 					result = ex.extract(topic)
 					depth -= 1
-					self.NODE(batch, topic, result['type'])
-					num += 1
+					self.updateBatch(batch, type = neo4j.Node, node = {'name': topic, 'class': result['type']})
 					if result['type'] == self.CATEGORY:
 						pass
 					elif result['type'] == self.ARTICLE:
 						for a in result['links']:
 							self.incr_rel(a, topic, self.SIBLING_REL)
 							print "adding: ", a
-							self.NODE(batch, a, self.ARTICLE)
-							num += 1
-							if depth > 0:
-								print "ENQUEUING", a
-								enqueue(a)
+							self.updateBatch(batch, type = neo4j.Node, node = {'name': a, 'class': self.ARTICLE})
+							if depth > 0: enqueue(a)
 						for c in result['categories']:
 							self.incr_rel(a, topic, self.CATEGORY_REL)
-							self.NODE(batch, c, self.CATEGORY)
-							num += 1
+							self.updateBatch(batch, type = neo4j.Node, node = {'name': c, 'class': self.CATEGORY})
 					elif result['type'] == self.DISAMBIGUATION:
 						for a in result['links']:
 							self.incr_rel(a, topic, self.DISAMB_REL)
-							self.NODE(batch, a, self.DISAMBIGUATION)
-							num += 1
-				if num >= BATCH_LIM:
-					batch.submit()
-					batch.clear()
-					num = 0
-		if num > 0:
-			self.submit_batch(batch)
-			num = 0
+							self.updateBatch(batch, type = neo4j.Node, node = {'name': a, 'class': self.DISAMBIGUATION})
 		print "FINISHED WITH THE NODES..."
 		for k in self.fdb.smembers(self.rel_key):
 			print "REL:", k
-			nodes = k.split(":", 2)
-			if len(nodes) != 3:
-				print "bad...rel"
-				continue
-			rel = nodes[0]
-			n1 = self.node_index.get('name', nodes[1])
-			n2 = self.node_index.get('name', nodes[2])
-			if n1 and n2:
-				n1 = n1[0]
-				n2 = n2[0]
-			else:
-				print "no nodes..."
-				continue
-			REL(batch, n1, rel, 1, n2)
-			num += 1
-
-			if num >= BATCH_LIM:
-				self.submit_batch(batch)
-				num = 0
-		if num > 0:
-			self.submit_batch(batch)
-			num = 0
+			try:
+				nodes = k.split(":", 2)
+				rel = nodes[0]
+				n1 = self.node_index.get('name', nodes[1])[0]
+				n2 = self.node_index.get('name', nodes[2])[0]
+				self.updateBatch(batch, type = neo4j.Relationship, rel = {'node1': n1, 'rel': rel, 'weight': 1, 'node2': n2})
+			except Exception as e:
+				print "REL EXCEPTION: ", e
 		print "DONE>>>>>>>>>>>>>>>"
 
 	def add_disambiguation(self, a):
@@ -191,3 +166,22 @@ class Crawler(Util):
 		if synset:
 			for synonym in synset:
 				self.fdb.set(SYN + synonym.upper(), word_id)
+
+	def getWikiDist(self, a, b):
+		a = a.replace(' ', '_')
+		b = b.replace(' ', '_')
+		e = Extractor()
+		sa = e.getWikiBacklinks(a, filter = "nonredirects")
+		sb = e.getWikiBacklinks(b, filter = "nonredirects")
+		n1 = log(max(len(sa), len(sb)))
+		n2 = log(len(set.intersection(sa, sb)))
+		d1 = log(10 ** 7)
+		d2 = log(min(len(sa), len(sb)))
+		extra1 = extra2 = 0
+		#if a in sb: extra1 = log(10 ** 7 / len(sb))
+		#if b in sa: extra2 = log(10 ** 7 / len(sa))
+		try:
+			return (n1 - n2) / float(d1 - d2)
+		except ZeroDivisionError as e:
+			print e
+			return self.INF

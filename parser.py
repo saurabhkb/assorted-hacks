@@ -3,6 +3,7 @@ from lxml import etree
 import re
 import sys
 import urllib2
+from goose import Goose
 
 nltk.data.path.append('./nltk_data/')
 

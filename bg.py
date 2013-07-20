@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from crawler import Crawler
 c = Crawler()
-c.spider('Computational_science')
+c.spider('Computational_science', action="crawl", preclean = True, depth = 10)
 #c.spider('Microsoft', preclean = True, action = "crawl", depth = 2)
 #c.add_synset('Jennifer Lopez')
 #c.add_disambiguation(raw_input())
