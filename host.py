@@ -12,7 +12,11 @@ d = Datastore()
 
 @app.route('/')
 def root():
+	print "in root..."
 	hosps = list(d.find(HOSPITAL_COLLECTION))
+	print "hosps:"
+	print hosps
+	print "end hosps"
 	return render_template("index.html", hospitals = hosps)
 
 @app.route('/update', methods = ['POST'])
