@@ -6,7 +6,10 @@ class Datastore:
 		mongourl = os.environ.get('MONGOLAB_URI')
 		self.client = MongoClient(mongourl)
 		print "CREATED DATASTORE CLIENT!", self.client
-		self.db = self.client.get_default_database()
+		try:
+			self.db = self.client.get_default_database()
+		except:
+			self.db = self.client.db
 
 	def find_one(self, collection, *args, **kwargs):
 		return self.db[collection].find_one(*args, **kwargs)
