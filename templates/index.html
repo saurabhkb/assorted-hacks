@@ -47,6 +47,28 @@ body {
 	text-decoration: none;
 }
 
+.graph_label {
+	width: 200px;
+	display: inline-block;
+	vertical-align: middle;
+}
+.bar {
+	height: 20px;
+	background-color: green;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.number {
+	display: inline-block;
+	margin: 0 20px;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.data_entry {
+	padding: 20px;
+}
 </style>
 
 <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -73,16 +95,11 @@ body {
 </div><!-- /.navbar-wrapper -->
 
 <div class="container">
-<b><p>***This has to be converted to a good looking chart***</p></b>
-<table>
 {% for h in hospitals %}
-<tr>
-<td>{{ h.hospital_name }}</td>
-<td></td>
-<td>{{ h.num_beds }}</td>
-</tr>
+<div class="data_entry">
+<div class="graph_label" id="label_{{ h.hospital_id }}">{{ h.hospital_name }}</div><div class="bar" id="bar_{{ h.hospital_id }}" style="width: {{ 20 * h.num_beds }}px"></div><div class="number" id="num_{{ h.hospital_id }}">{{ h.num_beds }}</div>
+</div>
 {% endfor %}
-</table>
 </div>
 
 
