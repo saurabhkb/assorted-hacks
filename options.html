@@ -1,0 +1,96 @@
+<html>
+<head>
+<title>Options</title>
+<script src="jquery-1.9.1.js"></script>
+<script src="constants.js"></script>
+<script src="options.js"></script>
+<style>
+@import url('font.css');
+.hashtitle {
+	font-family: open_sans_semi;
+	margin: 10px 0;
+	font-size: 1.5em;
+}
+body, * {
+	font-family: open_sans_reg;
+}
+#optionbox {
+	width: 500px;
+	margin: 80px auto;
+}
+.textbox {
+	padding: 8px;
+	border: thin solid rgb(210, 210, 210);
+}
+.textbox:FOCUS {
+	border: 1px solid #0bf;
+	box-shadow: 0 0 3px #0bf;
+	outline: 0 none;
+}
+.btn {
+	padding: 8px 10px;
+	border: none;
+	background-color: green;
+	color: white;
+	cursor: pointer;
+	transition: background-color 0.2s linear;
+	border-radius: 2px;
+}
+
+.btn:HOVER, .btn:FOCUS {
+	background-color: rgb(0, 150, 0);
+}
+
+.btn:ACTIVE {
+	background-color: rgb(0, 90, 0);
+}
+
+#key, #firstkey {
+	color: gray;
+	width: 300px;
+}
+#hashresult {
+	font-size: 0.9em;
+}
+.hashexpln {
+	color: gray;
+	font-size: 0.9em;
+	margin: 10px 0;
+}
+</style>
+</head>
+<body>
+<div id="optionbox">
+	<div class="hashtitle">Reset Key</div>
+	<div class="hashexpln">
+	Use this option when first generating a key. Enter your email address; a mail containing the key will be sent. Copy it into the box and submit.
+	</div>
+	<form id="firsthashform">
+		<input type="text" class="textbox" placeholder="email address" id="email" style="width: 407px;" />
+		<input type="submit" class="btn" value="send key" id="emailbutton" style="width: 85px;" />
+		<img src="images/loader.gif" id="email_load" style="display: none; position: relative; top: 9.5px;"/>
+	</form>
+	<form id="confirm">
+		<input type="text" id="firstkey" class="textbox" placeholder="security key" style="width: 407px;" />
+		<input type="submit" class="btn" value="verify key" id="firsthashbtn" style="width: 85px;"/>
+	</form>
+</div>
+
+<div id="optionbox">
+	<div class="hashtitle">Security Options</div>
+	<div class="hashexpln">
+	This security key is what identifies your you and your extension to us. You can change this key as many times as you want.
+	</div>
+	<form id="hashform">
+		<input type="text" class="textbox" placeholder="salt" id="salt" style="width: 364px;" />
+		<input type="submit" class="btn" value="generate new key" id="hashbutton" />
+	</form>
+	<div id="hashresult">Security key: <input type="text" id="key" class="textbox" readonly="readonly" style="width: 407px;" /></div>
+</div>
+<div id="optionbox">
+	<div class="hashtitle">Last Key Change:</div>
+	<div id="log" class="hashexpln">
+	</div>
+</div>
+</body>
+</html>

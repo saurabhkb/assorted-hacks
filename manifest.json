@@ -1,0 +1,26 @@
+{
+	"manifest_version": 2,
+
+	"name": "History",
+	"description": "History",
+	"version": "1.0",
+	"options_page": "options.html",
+	"background": {
+		"scripts": ["jquery-1.9.1.js", "background.js"],
+		"persistent": false
+	},
+	"content_scripts": [{
+		"matches": ["http://*/*", "https://*/*", "http://localhost/"],
+		"js": ["myscript.js"]
+	}],
+	"browser_action": {
+		"default_icon": "images/orangecirclefull.png",
+		"default_title": "Start Page",
+		"default_popup": "popup.html"
+	},
+	"permissions": [
+		"http://*/",
+		"history",
+		"alarms"
+	]
+}
