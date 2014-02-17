@@ -4,13 +4,16 @@ from datastore import Datastore
 import hashlib
 import random, time
 import traceback
+from ConfigParser import ConfigParser
 
-PUSHER_KEY = '754be4ab2d0de2d2272b'
-PUSHER_SECRET = '045de7c8b9e1f36548ac'
+c = ConfigParser(open("config"))
+PUSHER_KEY = c.get("PUSHER_CONFIG", "KEY")
+PUSHER_SECRET = c.get("PUSHER_CONFIG", "SECRET")
+APP_ID = c.get("PUSHER_CONFIG", "APP_ID")
 HOSPITAL_COLLECTION = 'hosp'
 
 app = Flask(__name__)
-p = pusher.Pusher(app_id = '60514', key = PUSHER_KEY, secret = PUSHER_SECRET)
+p = pusher.Pusher(app_id = APP_ID, key = PUSHER_KEY, secret = PUSHER_SECRET)
 d = Datastore()
 
 @app.route('/')

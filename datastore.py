@@ -5,7 +5,6 @@ class Datastore:
 	def __init__(self):
 		mongourl = os.environ.get('MONGOLAB_URI')
 		self.client = MongoClient(mongourl)
-		print "CREATED DATASTORE CLIENT!", self.client
 		try:
 			self.db = self.client.get_default_database()
 		except:
