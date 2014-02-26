@@ -1,0 +1,23 @@
+extends layout
+block styles
+	link(href="/stylesheets/history.css", rel="stylesheet")
+block body
+	#history-wrap
+		#company-name
+			a(href="/company/#{h[0].name}") #{h[0].name}
+			|&nbsp history
+		#history-result
+			table
+				tr
+					th month
+					th year
+					th open
+					th close
+					th average
+				each u in h
+					tr
+						td #{u.month}
+						td #{u.year}
+						td #{u.open}
+						td #{u.close}
+						td #{u.average}

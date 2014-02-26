@@ -1,0 +1,21 @@
+#history-wrap {
+	width: 70em;
+	margin: 0 auto;
+}
+#company-name {
+	font-size: 2em;
+/*	display: inline-block;*/
+	text-align: center;
+}
+
+#history-result table {
+	border-spacing: 60px 20px;
+	margin: 0 auto;
+	width: 400px;
+}
+#history-result table th {
+	border-bottom: 2px solid;
+}
+#history-result table td {
+	text-align: center;
+}

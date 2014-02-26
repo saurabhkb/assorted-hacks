@@ -1,0 +1,71 @@
+extends layout
+block styles
+	link(href="/stylesheets/sell_stock.css", rel="stylesheet")
+block scripts
+	script
+		$("document").ready(
+			function() {
+				$(".num").keyup(
+					function() {
+						var v = $(this).val();
+						var i = parseInt(v);
+						if(v == "" || v.trim() == "")
+							$(this).parents("tr").find(".val").text("");
+						else
+						if(isNaN(i) || !isFinite(i) || i <= 0)
+							$(this).parents("tr").find(".val").text("invalid");
+						else {
+							var max = parseInt($(this).parents("tr").find(".tot").text());
+							if(max < i)
+								$(this).parents("tr").find(".val").text("too much!");
+							else {
+								var p = $(this).parents("tr").find(".ltp").text();
+								var j = parseInt(p);
+								$(this).parents("tr").find(".val").text(i * j);
+							}
+						}
+					}
+				);
+				$(".sell").click(
+					function() {
+						var par = $(this).parents("tr");
+						var num = par.find(".num").val();
+						var ltp = parseInt(par.find(".ltp").text());
+						var tot = parseInt(par.find(".tot").text());
+						var symb = par.find(".sym").text();
+						var type = par.find(".typ").text();
+						if(num > tot || !num || num < 0 || isNaN(num) || !isFinite(num)) alert("error!");
+						else {
+							$.post("/sell_transaction", {num: num, symbol: symb, type: type}, function(data) {
+								alert("stock sold successfully!\nbalance increased by " + num * ltp);
+								par.find(".tot").text(tot - num);
+							});
+						}
+					}
+				);
+			}
+		);
+block body
+	#sell-wrap
+		#title Sell Stocks
+		#sell-table
+			table
+				tr
+					th symbol
+					th type
+					th number
+					th last trade price
+					th number to sell
+					th value earned
+				each u in d
+					tr
+						td.sym #{u.symbol}
+						td.typ #{u.type}
+						td.tot #{u.tot_number}
+						td.ltp #{u.last_trade_price}
+						td
+							input(type="text").num
+						td
+							.val
+						td
+							button.sell sell

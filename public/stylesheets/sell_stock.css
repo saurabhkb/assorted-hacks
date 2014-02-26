@@ -1,0 +1,26 @@
+#sell-wrap {
+	width: 70em;
+	margin: 0 auto;
+}
+#title {
+	font-size: 2em;
+}
+#sell-table table {
+	border-spacing: 20px;
+	width: 50em;
+	margin: 0 auto;
+}
+#sell-table table th {
+	border-bottom: 2px solid;
+}
+#sell-table table td {
+	text-align: center;
+}
+#sell-table table td input{
+	width: 50px;
+	padding: 5px;
+}
+#sell-table table td button{
+	font-size: 0.9em;
+	font-weight: bold;
+}

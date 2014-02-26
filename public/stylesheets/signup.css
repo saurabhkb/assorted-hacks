@@ -1,0 +1,14 @@
+#signup-box {
+	width: 30em;
+	margin: 5em auto;
+}
+
+#signup-box input[type="text"], #signup-box input[type="password"] {
+	width: 30em;
+}
+
+#signup-box #cancel {
+	margin-left: 2em;
+	vertical-align: middle;
+	font-size: 1.3em;
+}

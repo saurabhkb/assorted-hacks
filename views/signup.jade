@@ -1,0 +1,31 @@
+extends skeleton
+block styles
+	link(href="/stylesheets/signup.css", rel="stylesheet")
+block script
+	script
+		$(document).ready(
+			function() {
+				$("
+block content
+	#signup-box
+		h1 Sign Up
+		#signup-form(style="width: 45em;")
+			form(method="POST", action="/create_user")
+				p
+				input(type="text", placeholder="First Name", autocomplete="off", name="user[fn]")
+				p
+				input(type="text", placeholder="Middle Name", autocomplete="off", name="user[mn]")
+				p
+				input(type="text", placeholder="Last Name", autocomplete="off", name="user[ln]")
+				p
+				input(type="password", placeholder="Password", name="user[pwd]")
+				div(style="color: gray; font-size: 0.85em;") at least 6 characters (compulsory: one lowercase char, one uppercase char, one number)
+				p
+				input(type="text", placeholder="Email Id", autocomplete="off", name="user[emid]")
+				p
+				input(type="text", placeholder="Phone Number", autocomplete="off", name="user[pno]")
+				p
+				input(type="text", placeholder="Account Number", autocomplete="off", name="user[accno]")
+				p
+				input(type="submit", value="Sign Up")
+				a(href="/")#cancel Cancel

@@ -1,0 +1,75 @@
+.up-arrow{
+	border: thin solid;
+	border-color: transparent transparent green transparent;
+	border-width: 10px;
+	display: inline-block;
+	margin-left: 10px;
+}
+.down-arrow{
+	border: thin solid;
+	border-color: red transparent transparent transparent;
+	border-width: 10px;
+	display: inline-block;
+	margin-left: 10px;
+}
+
+marquee {
+	background: rgb(240, 240, 240);
+	padding: 5px;
+	font-weight: bold;
+	letter-spacing: 1.2px;
+}
+.wealth-div {
+	padding:10px 0 0 20px;
+}
+.wealth-title, .wealth-value {display: inline-block;}
+.wealth-title {
+	font-size: 1.6em;
+	margin-right: 5px;
+}
+.wealth-value {
+	font-size: 1.8em;
+	color: purple;
+}
+.quote {
+	display: inline-block;
+	margin: 0 20px;
+}
+.quote img{
+	margin-left: 5px;
+}
+
+.portfolio {
+//	float: left;
+	margin: 20px 10px;
+}
+.portfolio-title {
+	padding: 10px 0 0 20px;;
+	font-weight: bold;
+	font-size: 1.3em;
+}
+.portfolio table {
+	border-spacing: 20px;
+}
+.portfolio table th {
+	border-bottom: 2px solid black;
+	letter-spacing: 1.1px;
+	color: black;
+}
+.portfolio .symbol {
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+.portfolio table td {
+	color: rgb(70, 70, 70);
+	font-size: 0.9em;
+	text-align: center;
+}
+.news_feed {
+	width: 20em;
+	border: thin solid red;
+	height: 30em;
+	float: right;
+	margin: 10px;
+}

@@ -1,0 +1,125 @@
+extends layout
+block styles
+	link(href="/stylesheets/company.css", rel="stylesheet")
+block scripts
+	if c.length > 0
+		script
+			$("document").ready(
+				function() {
+					$("#purchase-bond-dialog").dialog({modal: true, autoOpen: false, resizable: false, draggable: true});
+					$("#purchase-bond-btn").click(
+						function() {
+							$("#purchase-bond-dialog").dialog("open");
+							$("#purchase-bond-dialog").dialog("option", "title", "Purchase #{c[0].name} Bonds");
+							$("#purchase-bond-dialog").dialog("option", "width", "650");
+							$("#purchase-bond-dialog").dialog("option", "height", "250");
+						}
+					);
+					$("#calc").click(
+						function(e) {
+							e.preventDefault();
+							var type = $("#bond-type-select").val();
+							var l = type.split(" - ");
+							var id = l[0] + "_" + l[1].replace(" ", "_").replace(" ", "_").replace(" ", "_");
+							var x = "#" + id;
+							if(!$("#num").val() || !$("#num").val().trim()) {
+								$("#cost").text("");
+								return;
+							}
+							if(!isFinite($("#num").val())) {
+								$("#cost").html("<div style='color: red; font-size: 0.8em;'>invalid</div>");
+								return;
+							}
+							var num = parseInt($("#num").val());
+							if(isNaN(num)) {
+								$("#cost").html("<div style='color: red; font-size: 0.8em;'>invalid</div>");
+								return;
+							}
+							var price = parseInt($(x).find(".ltp").text());
+							var cost = num * price;
+							$("#cost").text(cost);
+						}
+					);
+
+					$("#submit-purchase").click(
+						function(e) {
+							e.preventDefault();
+							var num = $("#num").val();
+							var type = $("#bond-type-select").val();
+							var l = type.split(" - ");
+							$.post("/purchase_bonds", {symbol: '#{c[0].symbol}', num: num, type: l[0], offer_date: l[1]}, function(data) {
+								if(data == "-3") alert("invalid input given!");
+								if(data == "-2") alert("insufficient balance for purchase!");
+								if(data == "-1") alert("an internal error occurred!");
+								if(data == "0") alert("bonds purchased successfully!");
+							});
+						}
+					);
+				}
+			);
+block body
+	if c.length > 0
+		#company-wrap
+			#company-header
+				#company-name #{c[0].name}
+				#company-symbol (#{c[0].symbol})
+				#market-name #{c[0].market}
+				#bond-options
+					button#purchase-bond-btn Purchase #{c[0].name} Bonds
+			#history
+				a(href="/company/#{c[0].name}/history") history
+			#bond
+				a(href="/company/#{c[0].name}/") stock
+			hr
+			#company-bond-details
+				each d in c
+					-var i = d.type + "_" + (d.offer_date).replace(" ", "_").replace(" ", "_").replace(" ", "_");
+					div(id="#{i}").bond-class-det
+						.type-name #{d.type} #{d.offer_date}
+						table.bond-table1.bond-table
+							tr
+								th Principal
+								td #{d.principal}
+							tr
+								th Yield
+								td #{d.yield}
+							tr
+								th Coupon
+								td #{d.coupon}
+							tr
+								th Maturity
+								td #{d.maturity}
+							tr
+								th Price
+								td.ltp #{d.price}
+			#purchase-bond-dialog
+				form
+					table
+						tr
+							td
+								.fieldname Type
+							td
+								.fieldvalue
+									select#bond-type-select
+										each u in c
+											option #{u.type} - #{u.offer_date}
+						tr
+							td
+								.fieldname Number
+							td
+								.fieldvalue
+									input(type="text", name="num", autocomplete="off")#num
+						tr
+							td
+								.fieldname Total Cost (Rs)
+							td
+								.fieldvalue#cost
+							td
+								a(href="#", style="color: #0bf")#calc calculate
+						tr
+							td
+								input(type="submit", value="submit")#submit-purchase
+							td
+								button cancel
+	else
+		#no-bonds no bonds offered!
