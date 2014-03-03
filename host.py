@@ -6,7 +6,8 @@ import random, time
 import traceback
 from ConfigParser import ConfigParser
 
-c = ConfigParser(open("config"))
+c = ConfigParser()
+c.readfp(open("config"))
 PUSHER_KEY = c.get("PUSHER_CONFIG", "KEY")
 PUSHER_SECRET = c.get("PUSHER_CONFIG", "SECRET")
 APP_ID = c.get("PUSHER_CONFIG", "APP_ID")
