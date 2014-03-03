@@ -10,6 +10,9 @@ c = ConfigParser(open("config"))
 PUSHER_KEY = c.get("PUSHER_CONFIG", "KEY")
 PUSHER_SECRET = c.get("PUSHER_CONFIG", "SECRET")
 APP_ID = c.get("PUSHER_CONFIG", "APP_ID")
+
+PASSWORD = c.get("ADMIN", "PASSWORD")
+
 HOSPITAL_COLLECTION = 'hosp'
 
 app = Flask(__name__)
@@ -53,7 +56,7 @@ def admin():
 def add():
 	try:
 		pwd = request.form['password']
-		assert pwd == "fs8548e99f5f71365Ea63OI5934"
+		assert pwd == PASSWORD
 		hosp_name = request.form['hospital_name']
 		num_beds = int(request.form['num_beds'])
 		hosp_id = int(random.random() * time.time())
@@ -67,7 +70,7 @@ def add():
 def view_hosp():
 	try:
 		pwd = request.form['password']
-		assert pwd == "fs8548e99f5f71365Ea63OI5934"
+		assert pwd == PASSWORD
 		hosps = list(d.find(HOSPITAL_COLLECTION, fields = {'hospital_name': True, 'hospital_id': True, '_id': False}))
 		return jsonify(hospitals = hosps)
 	except Exception as e:
@@ -78,7 +81,7 @@ def view_hosp():
 def del_hosp():
 	try:
 		pwd = request.form['password']
-		assert pwd == "fs8548e99f5f71365Ea63OI5934"
+		assert pwd == PASSWORD
 		hospital_id = int(request.form['hospital_id'])
 		d.remove(HOSPITAL_COLLECTION, {'hospital_id': hospital_id})
 		return jsonify(status = "OK")

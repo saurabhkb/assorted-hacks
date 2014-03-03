@@ -9,3 +9,8 @@ Basic real time hospital data web app using [Pusher](http://pusher.com/).
      SECRET = <your secret>
      APP_ID = <your app id>
 
+     [ADMIN]
+     PASSWORD = <admin password>
+
+
+A demo can be found on Heroku [here](http://obscure-island-2610.herokuapp.com/).
