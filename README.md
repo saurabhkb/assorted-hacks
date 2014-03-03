@@ -2,6 +2,8 @@
 
 Basic real time hospital data web app using [Pusher](http://pusher.com/).
 
+Also uses python and mongodb, along with the Pusher python library.
+
 *Expects a file named 'config' in the root directory of the following format:*
 
      [PUSHER_CONFIG]
