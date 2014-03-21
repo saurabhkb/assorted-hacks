@@ -5,7 +5,6 @@ class FastDataStore():
 	def __init__(self):
 		redis_url = os.getenv('REDISCLOUD_URL', 'redis://localhost:6379')
 		self.redis = redis.from_url(redis_url)
-		self.redis.flushdb() #remember to remove this!
 
 	def get(self, k):
 		return self.redis.get(k)
