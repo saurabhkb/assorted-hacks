@@ -1,0 +1,209 @@
+<html>
+<head>
+<title>Cloudy</title>
+<link href="/static/css/bootstrap.css" rel="stylesheet" />
+<link href="/static/css/bootstrap-theme.css" rel="stylesheet" />
+<link href="/static/css/normalize.min.css" rel="stylesheet" />
+<link href="/static/css/jquery.nouislider.css" rel="stylesheet" />
+<link href="/static/css/styles.css" rel="stylesheet" />
+<link href="/static/css/simplePagination.css" rel="stylesheet" />
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="container">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#"><span class="glyphicon glyphicon-fire"></span>&nbsp;Cloudy</a>
+		</div>
+		<div class="collapse navbar-collapse">
+			<ul class="nav navbar-nav">
+				<li class="active"><a href="#">Home</a></li>
+				<li><a href="#about">About</a></li>
+				<li><a href="#contact">Contact</a></li>
+			</ul>
+		</div><!--/.nav-collapse -->
+	</div>
+</div>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-4">
+			<h3>CPU Cores</h3>
+		</div>
+		<div class="col-md-5">
+			<div class="slider cores"></div>
+		</div>
+		<div class="col-md-3"><h4><span class="val cores lower"></span> - <span class="val cores upper"></span> cores</h4></div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4">
+			<h3>Memory</h3>
+		</div>
+		<div class="col-md-5">
+			<div class="slider memory"></div>
+		</div>
+		<div class="col-md-3"><h4><span class="val memory lower"></span> - <span class="val memory upper"></span> GB</h4></div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4">
+			<h3>Disk Space</h3>
+		</div>
+		<div class="col-md-5">
+			<div class="slider disk"></div>
+		</div>
+		<div class="col-md-3"><h4><span class="val disk lower"></span> - <span class="val disk upper"></span> TB</h4></div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4">
+			<h3>SSD</h3>
+		</div>
+		<div class="col-md-5">
+			<div class="slider ssd"></div>
+		</div>
+		<div class="col-md-3"><h4><span class="val ssd lower"></span> - <span class="val ssd upper"></span> TB</h4></div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4"><h3><a href="#" class="red button" id="submit">Search</a></h3></div>
+		<div class="col-md-8"></div>
+	</div>
+
+</div>
+
+<div class="container">
+	<div class="pagination"></div>
+</div>
+
+<div class="container results">
+</div>
+</body>
+<script src="/static/js/jquery-1.11.0.js"></script>
+<script src="/static/js/bootstrap.js"></script>
+<script src="/static/js/jquery.nouislider.js"></script>
+<script src="/static/js/jquery.simplePagination.js"></script>
+<script>
+$("document").ready(
+	function() {
+		initialize_sliders();
+		$(".pagination").pagination({
+			items: 0,
+			itemsOnPage: 10,
+			cssStyle: 'light-theme',
+			onPageClick: function(pageno, e) {
+				dict = get_parameters();
+				dict['page'] = pageno;
+				$.post("/fetch_results", dict, function(data) {
+					render_data(data['result']);
+				});
+			}
+		});
+		$("#submit").click(
+			function(e) {
+				e.preventDefault();
+				dict = get_parameters();
+				dict['page'] = 1;
+				$.post("/fetch_results", dict, function(data) {
+					render_data(data['result']);
+					$(".pagination").pagination('updateItems', data['length']);
+				});
+			}
+		);
+	}
+);
+
+function get_parameters() {
+	var cores_min = $(".val.cores.lower").text();
+	var memory_min = $(".val.memory.lower").text();
+	var disk_min = $(".val.disk.lower").text();
+	var ssd_min = $(".val.ssd.lower").text();
+
+	var cores_max = $(".val.cores.upper").text();
+	var memory_max = $(".val.memory.upper").text();
+	var disk_max = $(".val.disk.upper").text();
+	var ssd_max = $(".val.ssd.upper").text();
+
+	var dict = {
+		'cores_min': cores_min,
+		'cores_max': cores_max,
+		'disk_min': disk_min,
+		'disk_max': disk_max,
+		'ssd_min': ssd_min,
+		'ssd_max': ssd_max,
+		'memory_min': memory_min,
+		'memory_max': memory_max
+	};
+	return dict;
+}
+
+function render_data(data) {
+	$(".results").html("");
+	for(i in data) {
+		var row = "<div class='row'>";
+		row += "<div class='col-md-4'><h3>" + data[i].provider + "</h3></div>";
+		row += "<div class='col-md-4'><h4>" + data[i].location + "</h4></div>";
+		row += "<div class='col-md-2'><h4>" + data[i].cores + "</h4></div>";
+		row += "<div class='col-md-2'><h4>" + data[i].ramMB + "</h4></div>";
+		row += "</div>";
+		$(".results").append(row);
+	}
+}
+
+
+function initialize_sliders() {
+		var Link = $.noUiSlider.Link;
+		$('.slider.cores').noUiSlider({
+			start: [1, 20],
+			step: 1,
+			connect: true,
+			range: {'min': 1, 'max': 50},
+			serialization: {
+				lower: [new Link({target: $(".val.cores.lower")})],
+				upper: [new Link({target: $(".val.cores.upper")})],
+				format: {decimals: 0}
+			}
+		});
+		$('.slider.memory').noUiSlider({
+			start: [0, 80],
+			step: 5,
+			connect: true,
+			range: {'min': 0, 'max':250},
+			serialization: {
+				lower: [new Link({target: $(".val.memory.lower")})],
+				upper: [new Link({target: $(".val.memory.upper")})],
+				format: {decimals: 0}
+			}
+		});
+		$('.slider.disk').noUiSlider({
+			start: [0, 80],
+			step: 10,
+			connect: true,
+			range: {'min': 0, 'max': 100},
+			serialization: {
+				lower: [new Link({target: $(".val.disk.lower")})],
+				upper: [new Link({target: $(".val.disk.upper")})],
+				format: {decimals: 0}
+			}
+		});
+
+		$('.slider.ssd').noUiSlider({
+			start: [0, 4],
+			step: 1,
+			connect: true,
+			range: {'min': 0, 'max': 8},
+			serialization: {
+				lower: [new Link({target: $(".val.ssd.lower")})],
+				upper: [new Link({target: $(".val.ssd.upper")})],
+				format: {decimals: 0}
+			}
+		});
+}
+</script>
+</html>
