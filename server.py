@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify, redirect, abort
-import time
 from pymongo import MongoClient
 import json
 
@@ -26,25 +25,33 @@ def provider(p):
 		return redirect("http://aws.amazon.com/")
 	elif p == "Azure":
 		return redirect("http://azure.microsoft.com/en-us/")
+	elif p == "Rackspace":
+		return redirect("http://www.rackspace.com/")
+	elif p == "Google":
+		return redirect("https://cloud.google.com/")
+	elif p == "Linode":
+		return redirect("https://www.linode.com/")
 	else:
 		return abort(404)
 
 @app.route('/fetch_results', methods = ['POST', 'GET'])
 def fetch():
-	#page_num = int(request.form['page'])
-	#assert page_num > 0
+	#TODO some kind of checking here
+	j = request.get_json()
 
-	cores_min = int(request.form['cores_min'])
-	cores_max = int(request.form['cores_max'])
+	cores_min = int(j['cores_min'])
+	cores_max = int(j['cores_max'])
 
-	disk_min = int(request.form['disk_min']) * 10 ** 6
-	disk_max = int(request.form['disk_max']) * 10 ** 6
+	disk_min = int(j['disk_min']) * 10 ** 3
+	disk_max = int(j['disk_max']) * 10 ** 3
 
-	memory_min = int(request.form['memory_min']) * 10 ** 3
-	memory_max = int(request.form['memory_max']) * 10 ** 3
+	memory_min = int(j['memory_min']) * 10 ** 3
+	memory_max = int(j['memory_max']) * 10 ** 3
 
-	ssd_min = int(request.form['ssd_min']) * 10 ** 6
-	ssd_max = int(request.form['ssd_max']) * 10 ** 6
+	ssd_min = int(j['ssd_min']) * 10 ** 6
+	ssd_max = int(j['ssd_max']) * 10 ** 6
+
+	providers = j['providers']
 
 	q = {
 		"cores": {
@@ -62,20 +69,22 @@ def fetch():
 		"flashMB": {
 			"$gte": ssd_min,
 			"$lte": ssd_max
-		}
+		},
+		"$or": providers
 	}
-	result = list(v.find(q, {'_id': False}))
-	for r in result:
-		r['provider'] = "<a target='_blank' href='/provider/%s'>%s</a>" % (r['provider'], r['provider'])
-		r['ramGB'] = r['ramMB'] / 1000.0
-		r['diskGB'] = r['diskMB'] / 1000.0
-		r['flashGB'] = r['flashMB'] / 1000.0
+	try:
+		result = list(v.find(q, {'_id': False}))
+		for r in result:
+			r['provider'] = "<a target='_blank' href='/provider/%s'>%s</a>" % (r['provider'], r['provider'])
+			r['ramGB'] = r['ramMB'] / 1000.0
+			r['diskGB'] = r['diskMB'] / 1000.0
+			r['flashGB'] = r['flashMB'] / 1000.0
 
-		del r['ramMB']
-		del r['diskMB']
-		del r['flashMB']
-	#return jsonify(length = len(result), result = result[page_num : page_num + 10])
-	time.sleep(2)
-	return jsonify(length = len(result), result = result)
+			del r['ramMB']
+			del r['diskMB']
+			del r['flashMB']
+		return jsonify(length = len(result), result = result)
+	except:
+		return jsonify(length = 0, result = [])
 
 app.run(debug = True)
