@@ -1,7 +1,8 @@
-/*@import url(http://fonts.googleapis.com/css?family=Roboto:400,700);*/
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
 body {
 	padding-top: 120px;
 	font-family: 'Roboto', sans-serif;
+	overflow-y: scroll;
 }
 
 .navbar-static-top, .navbar-fixed-top, .navbar-fixed-bottom {
@@ -98,7 +99,6 @@ label {
 /* buttons */
 .button {
 	display: inline-block;
-	text-transform: uppercase;
 	padding: 0.75em 1.5em 0.75em;
 	border-radius: 2px;
 	font-weight: bold;
@@ -125,6 +125,51 @@ label {
 	box-shadow: 0 0 5px #ef7f65 inset, 0 1px 1px #eee;
 }
 
+.blue {
+	background-color: #93d0ea;
+	//background-color: #475256;
+}
+
+.blue.active {
+	//background: rgb(0, 208, 234);
+	background-color: rgb(120, 198, 234);
+}
+
+.btn:active, .btn.active {
+	box-shadow: none;
+	opacity: 1;
+}
+
+
+/* checkbox */
+.chck {
+	opacity: 0.9;
+	border: thin solid white;
+}
+
+.chckgroup {
+	margin-top: 10px;
+	padding: 0;
+	margin-left: -15px;
+}
+
+.chck .glyphicon {
+	vertical-align: middle;
+}
+
+.provider_list {
+	margin-top: 9px;
+}
+.provider_list .provider {
+	font-weight: 700;
+}
+
+.btn-group > .btn, .btn-group-vertical > .btn.chck {
+	float: none;
+	display: block;
+}
+
+/* table */
 .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
 	color: rgb(100, 100, 100);
 	font-size: 14px;

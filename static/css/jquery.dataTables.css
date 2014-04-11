@@ -113,6 +113,8 @@ table.dataTable tr.even td.sorting_3 { background-color: #F9F9FF; }
 .paginate_disabled_previous,
 .paginate_disabled_next {
 	color: #666 !important;
+	text-decoration: none !important;
+	cursor: auto;
 }
 .paginate_disabled_previous,
 .paginate_enabled_previous {

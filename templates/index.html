@@ -37,7 +37,7 @@
 		<div class="col-md-5">
 			<div class="slider disk"></div>
 		</div>
-		<div class="col-md-3"><h4><span class="val disk lower"></span> - <span class="val disk upper"></span> TB</h4></div>
+		<div class="col-md-3"><h4><span class="val disk lower"></span> - <span class="val disk upper"></span> GB</h4></div>
 	</div>
 
 	<div class="row">
@@ -50,15 +50,49 @@
 		<div class="col-md-3"><h4><span class="val ssd lower"></span> - <span class="val ssd upper"></span> TB</h4></div>
 	</div>
 
+	<div class="row" style="min-height: 70px;">
+		<div class="col-md-4">
+			<h3>Providers</h3>
+		</div>
+		<div class="col-md-5">
+			<label class="chck active"><span name="Amazon">Amazon </span><span class="glyphicon glyphicon-check"></span></label>
+			<label class="chck active"><span name="Azure">Azure </span><span class="glyphicon glyphicon-check"></span></label>
+			<label class="chck active"><span name="Rackspace">Rackspace </span><span class="glyphicon glyphicon-check"></span></label>
+			<label class="chck active"><span name="Google">Google </span><span class="glyphicon glyphicon-check"></span></label>
+			<label class="chck active"><span name="Linode">Linode </span><span class="glyphicon glyphicon-check"></span></label>
+			<!-- <div class="btn-group chckgroup" data-toggle="buttons">
+				<label class="blue button btn chck active">
+					<input type="checkbox" name="Amazon" checked> Amazon <span class="glyphicon glyphicon-check"></span>
+				</label>
+				<label class="blue button btn chck active">
+					<input type="checkbox" name="Azure" checked> Azure <span class="glyphicon glyphicon-check"></span>
+				</label>
+				<label class="blue button btn chck active">
+					<input type="checkbox" name="Rackspace" checked> Rackspace <span class="glyphicon glyphicon-check"></span>
+				</label>
+				<label class="blue button btn chck active">
+					<input type="checkbox" name="Google" checked> Google <span class="glyphicon glyphicon-check"></span>
+				</label>
+				<label class="blue button btn chck active">
+					<input type="checkbox" name="Linode" checked> Linode <span class="glyphicon glyphicon-check"></span>
+				</label>
+			</div> -->
+		</div>
+		<div class="col-md-3">
+			<div class="provider_list"></div>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-md-4">
 			<h3>
-				<a href="#" class="red button" id="submit">Search</a>
+				<a href="#" class="red button" id="submit">SEARCH</a>
 				<span class="loader" style="display: none;"><img src="/static/images/loader.gif" /></span>
 			</h3>
 		</div>
 		<div class="col-md-8">  </div>
 	</div>
+
 
 	<hr>
 
@@ -79,6 +113,33 @@
 $("document").ready(
 	function() {
 		initialize_sliders();
+		$('label.chck').each(function() {
+			label = $(this);
+			g = label.children(".glyphicon");
+			provider = label.children("span").attr("name");
+			console.log(provider);
+			if(g.hasClass("glyphicon-check")) {
+				$(".provider_list").append("<div class='provider' name='" + provider + "'>" + provider + "</div>");
+			} else {
+				$(".provider_list").children("[name=" + provider + "]").remove();
+			}
+		});
+		$("label.chck").click(
+			function() {
+				g = $(this).children(".glyphicon");
+				provider = $(this).children("span").attr("name");
+				if(g.hasClass("glyphicon-check")) {
+					g.removeClass("glyphicon-check");
+					g.addClass("glyphicon-unchecked");
+					$(".provider_list").children("[name=" + provider + "]").remove();
+				} else {
+					g.removeClass("glyphicon-unchecked");
+					g.addClass("glyphicon-check");
+					$(".provider_list").append("<div class='provider' name='" + provider + "'>" + provider + "</div>");
+				}
+			}
+		);
+
 		var oTable;
 
 		$("#submit").click(
@@ -87,26 +148,31 @@ $("document").ready(
 				dict = get_parameters();
 				$(".loader").toggle();
 				$(".results").addClass("blur");
-				$.post("/fetch_results", dict, function(data) {
-					$(".loader").toggle();
-					$(".results").removeClass("blur");
-					oTable = $('#result_table').DataTable( {
-								"bProcessing": true,
-								"bDestroy": true,
-								//"sDom": "<'row'<'col-md-6'l><'col-md-6'f>r>t<'row'<'col-md-6'i><'col-md-6'p>>",
-								"sDom": "<'row'<'col-md-6'i><'col-md-6'p>r>t<'row'<'col-md-6'l><'col-md-6'f>>",
-								"aaData": data['result'],
-								"aoColumns": [
-									{ "sTitle": "Provider", "mData": "provider" },
-									{ "sTitle": "Cores", "mData": "cores" },
-									{ "sTitle": "Disk (GB)", "mData": "diskGB" },
-									{ "sTitle": "RAM (GB)", "mData": "ramGB" },
-									{ "sTitle": "SSD (GB)", "mData": "flashGB" },
-									{ "sTitle": "Hourly Cost ($)", "mData": "hourlyCost" },
-									{ "sTitle": "Location", "mData": "location" },
-									{ "sTitle": "Server Type", "mData": "serverType" }
-								]
-							});
+				$.ajax({
+					url: "/fetch_results",
+					type: "POST",
+					data: JSON.stringify(dict),
+					contentType: 'application/json; charset=utf-8',
+					success: function(data) {
+							$(".loader").toggle();
+							$(".results").removeClass("blur");
+							oTable = $('#result_table').DataTable( {
+									bProcessing: true,
+									bDestroy: true,
+									sDom: "<'row'<'col-md-6'i><'col-md-6'p>r>t<'row'<'col-md-6'l><'col-md-6'f>>",
+									aaData: data['result'],
+									aoColumns: [
+										{ "sTitle": "Provider", "mData": "provider" },
+										{ "sTitle": "Cores", "mData": "cores" },
+										{ "sTitle": "Disk (GB)", "mData": "diskGB" },
+										{ "sTitle": "RAM (GB)", "mData": "ramGB" },
+										{ "sTitle": "SSD (GB)", "mData": "flashGB" },
+										{ "sTitle": "Hourly Cost ($)", "mData": "hourlyCost" },
+										{ "sTitle": "Location", "mData": "location" },
+										{ "sTitle": "Server Type", "mData": "serverType" }
+									]
+								});
+						}
 				});
 			}
 		);
@@ -124,6 +190,11 @@ function get_parameters() {
 	var disk_max = $(".val.disk.upper").text();
 	var ssd_max = $(".val.ssd.upper").text();
 
+	names = [];
+	$('.chckgroup input:checked').each(function() {
+		names.push({'provider': this.name});
+	});
+
 	var dict = {
 		'cores_min': cores_min,
 		'cores_max': cores_max,
@@ -132,7 +203,8 @@ function get_parameters() {
 		'ssd_min': ssd_min,
 		'ssd_max': ssd_max,
 		'memory_min': memory_min,
-		'memory_max': memory_max
+		'memory_max': memory_max,
+		'providers': names
 	};
 	return dict;
 }
@@ -176,10 +248,10 @@ function initialize_sliders() {
 			}
 		});
 		$('.slider.disk').noUiSlider({
-			start: [0, 80],
+			start: [0, 2000],
 			step: 10,
 			connect: true,
-			range: {'min': 0, 'max': 100},
+			range: {'min': 0, 'max': 2500},
 			serialization: {
 				lower: [new Link({target: $(".val.disk.lower")})],
 				upper: [new Link({target: $(".val.disk.upper")})],
