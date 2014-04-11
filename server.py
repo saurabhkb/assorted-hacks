@@ -1,15 +1,25 @@
 from flask import Flask, render_template, request, jsonify, redirect, abort
 from pymongo import MongoClient
 import json
+import os
 
 app = Flask(__name__)
 client = MongoClient()
 db = client['cloud']
 v = db['vm']
 
+providers = v.distinct('provider')
+parametric_fields = [
+			{'name': 'CPU Cores', 'class': 'cores', 'unit': 'cores', 'min': 1, 'max': 20, 'step': 1, 'show_start': 1, 'show_end': 20},
+			{'name': 'Memory (GB)', 'class': 'ramGB', 'unit': 'GB', 'min': 0, 'max': 250, 'step': 5, 'show_start': 0, 'show_end': 80},
+			{'name': 'Disk Space (GB)', 'class': 'diskGB', 'unit': 'GB', 'min': 0, 'max': 2500, 'step': 10, 'show_start': 0, 'show_end': 2000},
+			{'name': 'SSD (GB)', 'class': 'flashGB', 'unit': 'GB', 'min': 0, 'max': 2500, 'step': 50, 'show_start': 0, 'show_end': 550},
+		]
+nonparametric_fields = [ {'name': 'Provider', 'class': 'provider'}, {'name': 'Region', 'class': 'region'}, {'name': 'Server Type', 'class': 'serverType'}, {'name': 'Upfront Cost ($)', 'class': 'upfrontCost'}, {'name': 'Hourly Cost ($)', 'class': 'hourlyCost'} ]
+
 @app.route('/')
 def home():
-	return render_template("index.html")
+	return render_template("index.html", providers = providers, parametric_fields = parametric_fields, nonparametric_fields = nonparametric_fields)
 
 @app.route('/about')
 def about():
@@ -42,14 +52,14 @@ def fetch():
 	cores_min = int(j['cores_min'])
 	cores_max = int(j['cores_max'])
 
-	disk_min = int(j['disk_min']) * 10 ** 3
-	disk_max = int(j['disk_max']) * 10 ** 3
+	disk_min = int(j['diskGB_min']) * 10 ** 3
+	disk_max = int(j['diskGB_max']) * 10 ** 3
 
-	memory_min = int(j['memory_min']) * 10 ** 3
-	memory_max = int(j['memory_max']) * 10 ** 3
+	memory_min = int(j['ramGB_min']) * 10 ** 3
+	memory_max = int(j['ramGB_max']) * 10 ** 3
 
-	ssd_min = int(j['ssd_min']) * 10 ** 6
-	ssd_max = int(j['ssd_max']) * 10 ** 6
+	ssd_min = int(j['flashGB_min']) * 10 ** 3
+	ssd_max = int(j['flashGB_max']) * 10 ** 3
 
 	providers = j['providers']
 

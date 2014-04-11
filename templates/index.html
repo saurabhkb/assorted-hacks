@@ -10,73 +10,28 @@
 
 {% block content %}
 <div class="container">
+	{% for p in parametric_fields %}
 	<div class="row">
 		<div class="col-md-4">
-			<h3>CPU Cores</h3>
+			<h3>{{ p.name }}</h3>
 		</div>
 		<div class="col-md-5">
-			<div class="slider cores"></div>
+			<div class="slider {{ p.class }}"></div>
 		</div>
-		<div class="col-md-3"><h4><span class="val cores lower"></span> - <span class="val cores upper"></span> cores</h4></div>
+		<div class="col-md-3"><h4><span class="val {{ p.class }} lower"></span> - <span class="val {{ p.class }} upper"></span> {{ p.unit }}</h4></div>
 	</div>
+	{% endfor %}
 
-	<div class="row">
-		<div class="col-md-4">
-			<h3>Memory</h3>
-		</div>
-		<div class="col-md-5">
-			<div class="slider memory"></div>
-		</div>
-		<div class="col-md-3"><h4><span class="val memory lower"></span> - <span class="val memory upper"></span> GB</h4></div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-4">
-			<h3>Disk Space</h3>
-		</div>
-		<div class="col-md-5">
-			<div class="slider disk"></div>
-		</div>
-		<div class="col-md-3"><h4><span class="val disk lower"></span> - <span class="val disk upper"></span> GB</h4></div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-4">
-			<h3>SSD</h3>
-		</div>
-		<div class="col-md-5">
-			<div class="slider ssd"></div>
-		</div>
-		<div class="col-md-3"><h4><span class="val ssd lower"></span> - <span class="val ssd upper"></span> TB</h4></div>
-	</div>
-
-	<div class="row" style="min-height: 70px;">
+	<div class="row" style="min-height: 80px;">
 		<div class="col-md-4">
 			<h3>Providers</h3>
 		</div>
 		<div class="col-md-5">
-			<label class="chck active"><span name="Amazon">Amazon </span><span class="glyphicon glyphicon-check"></span></label>
-			<label class="chck active"><span name="Azure">Azure </span><span class="glyphicon glyphicon-check"></span></label>
-			<label class="chck active"><span name="Rackspace">Rackspace </span><span class="glyphicon glyphicon-check"></span></label>
-			<label class="chck active"><span name="Google">Google </span><span class="glyphicon glyphicon-check"></span></label>
-			<label class="chck active"><span name="Linode">Linode </span><span class="glyphicon glyphicon-check"></span></label>
-			<!-- <div class="btn-group chckgroup" data-toggle="buttons">
-				<label class="blue button btn chck active">
-					<input type="checkbox" name="Amazon" checked> Amazon <span class="glyphicon glyphicon-check"></span>
-				</label>
-				<label class="blue button btn chck active">
-					<input type="checkbox" name="Azure" checked> Azure <span class="glyphicon glyphicon-check"></span>
-				</label>
-				<label class="blue button btn chck active">
-					<input type="checkbox" name="Rackspace" checked> Rackspace <span class="glyphicon glyphicon-check"></span>
-				</label>
-				<label class="blue button btn chck active">
-					<input type="checkbox" name="Google" checked> Google <span class="glyphicon glyphicon-check"></span>
-				</label>
-				<label class="blue button btn chck active">
-					<input type="checkbox" name="Linode" checked> Linode <span class="glyphicon glyphicon-check"></span>
-				</label>
-			</div> -->
+		<div class="chckgroup">
+			{% for p in providers %}
+				<label class="chck active" name="{{ p }}"><span name="{{ p }}">{{ p }} </span><span class="glyphicon glyphicon-check"></span></label>
+			{% endfor %}
+		</div>
 		</div>
 		<div class="col-md-3">
 			<div class="provider_list"></div>
@@ -119,7 +74,7 @@ $("document").ready(
 			provider = label.children("span").attr("name");
 			console.log(provider);
 			if(g.hasClass("glyphicon-check")) {
-				$(".provider_list").append("<div class='provider' name='" + provider + "'>" + provider + "</div>");
+				$(".provider_list").append("<a target='_blank' href='/provider/" + provider + "' class='provider' name='" + provider + "'>" + provider + "</a>");
 			} else {
 				$(".provider_list").children("[name=" + provider + "]").remove();
 			}
@@ -129,18 +84,28 @@ $("document").ready(
 				g = $(this).children(".glyphicon");
 				provider = $(this).children("span").attr("name");
 				if(g.hasClass("glyphicon-check")) {
+					$(this).removeClass("active");
 					g.removeClass("glyphicon-check");
 					g.addClass("glyphicon-unchecked");
 					$(".provider_list").children("[name=" + provider + "]").remove();
 				} else {
+					$(this).addClass("active");
 					g.removeClass("glyphicon-unchecked");
 					g.addClass("glyphicon-check");
-					$(".provider_list").append("<div class='provider' name='" + provider + "'>" + provider + "</div>");
+					$(".provider_list").append("<a target='_blank' href='/provider/" + provider + "' class='provider' name='" + provider + "'>" + provider + "</a>");
 				}
 			}
 		);
 
 		var oTable;
+		var columns = [];
+		{% for p in nonparametric_fields %}
+		columns.push({"sTitle": "{{ p.name }}", "mData": "{{ p.class }}"});
+		{% endfor %}
+		{% for p in parametric_fields %}
+		columns.push({"sTitle": "{{ p.name }}", "mData": "{{ p.class }}"});
+		{% endfor %}
+
 
 		$("#submit").click(
 			function(e) {
@@ -161,16 +126,7 @@ $("document").ready(
 									bDestroy: true,
 									sDom: "<'row'<'col-md-6'i><'col-md-6'p>r>t<'row'<'col-md-6'l><'col-md-6'f>>",
 									aaData: data['result'],
-									aoColumns: [
-										{ "sTitle": "Provider", "mData": "provider" },
-										{ "sTitle": "Cores", "mData": "cores" },
-										{ "sTitle": "Disk (GB)", "mData": "diskGB" },
-										{ "sTitle": "RAM (GB)", "mData": "ramGB" },
-										{ "sTitle": "SSD (GB)", "mData": "flashGB" },
-										{ "sTitle": "Hourly Cost ($)", "mData": "hourlyCost" },
-										{ "sTitle": "Location", "mData": "location" },
-										{ "sTitle": "Server Type", "mData": "serverType" }
-									]
+									aoColumns: columns
 								});
 						}
 				});
@@ -180,96 +136,36 @@ $("document").ready(
 );
 
 function get_parameters() {
-	var cores_min = $(".val.cores.lower").text();
-	var memory_min = $(".val.memory.lower").text();
-	var disk_min = $(".val.disk.lower").text();
-	var ssd_min = $(".val.ssd.lower").text();
-
-	var cores_max = $(".val.cores.upper").text();
-	var memory_max = $(".val.memory.upper").text();
-	var disk_max = $(".val.disk.upper").text();
-	var ssd_max = $(".val.ssd.upper").text();
+	var dict = {};
+	{% for p in parametric_fields %}
+	dict["{{ p.class }}_min"] = $(".val.{{ p.class }}.lower").text();
+	dict["{{ p.class }}_max"] = $(".val.{{ p.class }}.upper").text();
+	{% endfor %}
 
 	names = [];
-	$('.chckgroup input:checked').each(function() {
-		names.push({'provider': this.name});
+	$('.chck.active').each(function() {
+		names.push({'provider': $(this).attr("name")});
 	});
-
-	var dict = {
-		'cores_min': cores_min,
-		'cores_max': cores_max,
-		'disk_min': disk_min,
-		'disk_max': disk_max,
-		'ssd_min': ssd_min,
-		'ssd_max': ssd_max,
-		'memory_min': memory_min,
-		'memory_max': memory_max,
-		'providers': names
-	};
+	dict['providers'] = names;
 	return dict;
 }
 
-function render_data(data) {
-	$(".results").html("");
-	for(i in data) {
-		var row = "<div class='row'>";
-		row += "<div class='col-md-4'><h3>" + data[i].provider + "</h3></div>";
-		row += "<div class='col-md-4'><h4>" + data[i].location + "</h4></div>";
-		row += "<div class='col-md-2'><h4>" + data[i].cores + "</h4></div>";
-		row += "<div class='col-md-2'><h4>" + data[i].ramMB + "</h4></div>";
-		row += "</div>";
-		$(".results").append(row);
-	}
-}
-
-
 function initialize_sliders() {
-		var Link = $.noUiSlider.Link;
-		$('.slider.cores').noUiSlider({
-			start: [1, 20],
-			step: 1,
-			connect: true,
-			range: {'min': 1, 'max': 50},
-			serialization: {
-				lower: [new Link({target: $(".val.cores.lower")})],
-				upper: [new Link({target: $(".val.cores.upper")})],
-				format: {decimals: 0}
-			}
-		});
-		$('.slider.memory').noUiSlider({
-			start: [0, 80],
-			step: 5,
-			connect: true,
-			range: {'min': 0, 'max':250},
-			serialization: {
-				lower: [new Link({target: $(".val.memory.lower")})],
-				upper: [new Link({target: $(".val.memory.upper")})],
-				format: {decimals: 0}
-			}
-		});
-		$('.slider.disk').noUiSlider({
-			start: [0, 2000],
-			step: 10,
-			connect: true,
-			range: {'min': 0, 'max': 2500},
-			serialization: {
-				lower: [new Link({target: $(".val.disk.lower")})],
-				upper: [new Link({target: $(".val.disk.upper")})],
-				format: {decimals: 0}
-			}
-		});
+	var Link = $.noUiSlider.Link;
 
-		$('.slider.ssd').noUiSlider({
-			start: [0, 4],
-			step: 1,
-			connect: true,
-			range: {'min': 0, 'max': 8},
-			serialization: {
-				lower: [new Link({target: $(".val.ssd.lower")})],
-				upper: [new Link({target: $(".val.ssd.upper")})],
-				format: {decimals: 0}
-			}
-		});
+	{% for p in parametric_fields %}
+	$('.slider.{{ p.class }}').noUiSlider({
+		start: [{{ p.show_start }}, {{ p.show_end }}],
+		step: {{ p.step }},
+		connect: true,
+		range: {'min': {{ p.min }}, 'max': {{ p.max }}},
+		serialization: {
+			lower: [new Link({target: $(".val.{{ p.class }}.lower")})],
+			upper: [new Link({target: $(".val.{{ p.class }}.upper")})],
+			format: {decimals: 0}
+		}
+	});
+	{% endfor %}
 }
 </script>
 {% endblock %}

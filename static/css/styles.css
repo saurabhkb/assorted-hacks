@@ -143,8 +143,18 @@ label {
 
 /* checkbox */
 .chck {
-	opacity: 0.9;
+	opacity: 0.5;
 	border: thin solid white;
+	margin: 0 15px 0 0;
+	cursor: pointer;
+}
+
+.chck:hover {
+	opacity: 0.7;
+}
+
+.chck.active {
+	opacity: 0.9;
 }
 
 .chckgroup {
@@ -162,12 +172,10 @@ label {
 }
 .provider_list .provider {
 	font-weight: 700;
+	margin: 0 10px 0 0;
+	float: left;
 }
 
-.btn-group > .btn, .btn-group-vertical > .btn.chck {
-	float: none;
-	display: block;
-}
 
 /* table */
 .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
