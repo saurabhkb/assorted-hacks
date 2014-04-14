@@ -1,0 +1,75 @@
+@import url('font.css');
+
+body {
+	width: 450px;
+	font-family: open_sans_reg;
+	font-size: 13px;
+}
+a {
+	text-decoration: none;
+	color: rgb(0, 136, 204);
+}
+a:HOVER {
+	color: rgb(0, 80, 220);
+}
+.item {
+	padding: 15px;
+	margin-bottom: 5px;
+	display: block;
+	word-wrap: break-word;
+	border-left: 2px solid rgba(0, 0, 0, 0.0);
+}
+.item:HOVER, .item:FOCUS {
+	outline: 0 none;
+	background: rgb(245, 245, 245);
+	color: rgb(0, 80, 220);
+	border-left: 2px solid;
+}
+
+.item-title {
+	font-family: open_sans_semi;
+	#color: black;
+}
+.item-content {
+	color: rgb(100, 100, 100);
+}
+
+
+/* clusters */
+.cluster {
+	list-style: none;
+	border: thin solid rgb(230, 230, 230);
+	border-width: 1px 0;
+	margin: 0;
+	padding: 20px;
+}
+
+
+/* error message */
+.error-msg {
+	color: #555;
+	text-align: center;
+	font-family: open_sans_semi;
+	font-size: 14px;
+	/*padding: 7px;*/
+	letter-spacing: 1px;
+}
+
+
+/*scroll*/
+
+/* Track */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+	cursor: pointer;
+}
+::-webkit-scrollbar-track {
+	border-top: thin solid rgb(240, 240, 240);
+	border-left: thin solid rgb(240, 240, 240);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: rgb(210, 210, 210);
+}
