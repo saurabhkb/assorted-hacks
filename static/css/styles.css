@@ -1,0 +1,237 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
+body {
+	padding-top: 120px;
+	font-family: 'Roboto', sans-serif;
+	overflow-y: scroll;
+}
+
+.navbar-static-top, .navbar-fixed-top, .navbar-fixed-bottom {
+	background: none;
+	background-color: rgb(50, 107, 145);
+	background-color: rgb(55, 67, 72);
+	border: none;
+	padding: 20px;
+	letter-spacing: 1px;
+}
+
+.navbar > .container .navbar-brand, .navbar > .container-fluid .navbar-brand {
+	font-size: 20px;
+	margin-top: -2px;
+}
+
+.navbar-inverse .navbar-brand, .navbar-inverse .navbar-nav > li > a {
+	text-shadow: none;
+	color: rgb(220, 220, 220);
+	font-weight: bold;
+	font-size: 15px;
+}
+
+.navbar-inverse .navbar-nav > .active > a {
+	box-shadow: none;
+	background: initial;
+	background-color: transparent;
+	color: orange;
+}
+
+.navbar-inverse .navbar-nav > .active > a:hover {
+	background: initial;
+	color: orange;
+}
+
+ .navbar-inverse .navbar-nav > .active > a:focus, .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus {
+	background: initial;
+	color: white;
+}
+
+
+
+/* slider */
+.slider { margin-top: 22px; width: 80%; }
+
+.val { font-weight: 700; }
+
+.noUi-target {
+	border-radius: 0;
+	box-shadow: none;
+	height: 10px;
+	border-color: rgb(230, 230, 230);
+}
+
+.noUi-origin {
+	border-radius: 0;
+	box-shadow: none;
+	border-width: 0;
+}
+
+.noUi-horizontal .noUi-handle {
+	height: 20px;
+	width: 20px;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.noUi-handle:before, .noUi-handle:after {
+	content: initial;
+}
+
+.noUi-active {
+	border-color: rgb(180, 180, 180);
+}
+
+
+/* select */
+select.form-control {
+	border-radius: 0;
+	box-shadow: none;
+	width: 50%;
+	margin-top: 14px;
+}
+
+select.form-control:focus {
+	box-shadow: none;
+}
+
+/* labels */
+label {
+	font-weight: normal;
+}
+
+/* buttons */
+.button {
+	display: inline-block;
+	padding: 0.75em 1.5em 0.75em;
+	border-radius: 2px;
+	font-weight: bold;
+	border: none;
+	color: #fff !important;
+	text-decoration: none;
+	font-size: 14px;
+	line-height: 1;
+	opacity: 0.9;
+	cursor: pointer;
+}
+
+.button:hover {
+	opacity: 0.8;
+	text-decoration: none;
+}
+
+.button:active {
+	opacity: 1;
+}
+
+.red {
+	background-color: #f4836a;
+	box-shadow: 0 0 5px #ef7f65 inset, 0 1px 1px #eee;
+}
+
+.blue {
+	background-color: #93d0ea;
+	//background-color: #475256;
+}
+
+.blue.active {
+	//background: rgb(0, 208, 234);
+	background-color: rgb(120, 198, 234);
+}
+
+.btn:active, .btn.active {
+	box-shadow: none;
+	opacity: 1;
+}
+
+
+/* checkbox */
+.chck {
+	opacity: 0.5;
+	border: thin solid white;
+	margin: 0 15px 0 0;
+	cursor: pointer;
+}
+
+.chck:hover {
+	opacity: 0.7;
+}
+
+.chck.active {
+	opacity: 0.9;
+}
+
+.chckgroup {
+	margin-top: 10px;
+	padding: 0;
+	margin-left: -15px;
+}
+
+.chck .glyphicon {
+	vertical-align: middle;
+}
+
+.provider_list {
+	margin-top: 9px;
+}
+.provider_list .provider {
+	font-weight: 700;
+	margin: 0 10px 0 0;
+	float: left;
+}
+
+
+/* table */
+.table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+	color: rgb(100, 100, 100);
+	font-size: 14px;
+	padding: 10px;
+}
+
+/*.table > tbody > tr > td:first-child {
+	color: #0bf;
+	cursor: pointer;
+}*/
+
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th {
+	color: rgb(50, 50, 50);
+	padding: 10px;
+	border-bottom: none;
+}
+
+table.dataTable tr.odd td.sorting_1 {
+	background-color: #f9f9f9;
+}
+
+table.dataTable tr.even td.sorting_1 {
+	background-color: transparent;
+}
+
+#result_table_length select {
+	background: white;
+	border: thin solid rgb(230, 230, 230);
+}
+
+#result_table_filter label input[type="text"] {
+	border: thin solid rgb(230, 230, 230);
+	padding: 5px;
+	font-weight: normal;
+}
+
+.results {
+	margin-bottom: 50px;
+}
+
+#result_table {
+	margin: 5px 0;
+}
+
+.paginate_enabled_next, .paginate_enabled_previous, .paginate_disabled_previous, .paginate_disabled_next, .paginate_enabled_next:hover, .paginate_enabled_previous:hover {
+	background: none;
+}
+
+
+/* loader */
+.loader {
+	margin-left: 10px;
+}
+
+.blur {
+	opacity: 0.5;
+}

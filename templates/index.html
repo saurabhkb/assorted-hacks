@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block highlight %}
+<ul class="nav navbar-nav">
+	<li class="active"><a href="#">Home</a></li>
+	<li><a href="/about">About</a></li>
+	<li><a href="/contact">Contact</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	{% for p in parametric_fields %}
+	<div class="row">
+		<div class="col-md-4">
+			<h3>{{ p.name }}</h3>
+		</div>
+		<div class="col-md-5">
+			<div class="slider {{ p.class }}"></div>
+		</div>
+		<div class="col-md-3"><h4><span class="val {{ p.class }} lower"></span> - <span class="val {{ p.class }} upper"></span> {{ p.unit }}</h4></div>
+	</div>
+	{% endfor %}
+
+	<div class="row" style="min-height: 80px;">
+		<div class="col-md-4">
+			<h3>Providers</h3>
+		</div>
+		<div class="col-md-5">
+		<div class="chckgroup">
+			{% for p in providers %}
+				<label class="chck active" name="{{ p }}"><span name="{{ p }}">{{ p }} </span><span class="glyphicon glyphicon-check"></span></label>
+			{% endfor %}
+		</div>
+		</div>
+		<div class="col-md-3">
+			<div class="provider_list"></div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4">
+			<h3>
+				<a href="#" class="red button" id="submit">SEARCH</a>
+				<span class="loader" style="display: none;"><img src="/static/images/loader.gif" /></span>
+			</h3>
+		</div>
+		<div class="col-md-8">  </div>
+	</div>
+
+
+	<hr>
+
+</div>
+
+<div class="container results">
+	<table id="result_table" class="table table-striped table-bordered"></table>
+</div>
+<!-- <div class="footer">
+	&copy; Saurabh Kumar (2014)
+</div> -->
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/jquery.nouislider.js"></script>
+<script src="/static/js/jquery.dataTables.js"></script>
+<script>
+$("document").ready(
+	function() {
+		initialize_sliders();
+		$('label.chck').each(function() {
+			label = $(this);
+			g = label.children(".glyphicon");
+			provider = label.children("span").attr("name");
+			console.log(provider);
+			if(g.hasClass("glyphicon-check")) {
+				$(".provider_list").append("<a target='_blank' href='/provider/" + provider + "' class='provider' name='" + provider + "'>" + provider + "</a>");
+			} else {
+				$(".provider_list").children("[name=" + provider + "]").remove();
+			}
+		});
+		$("label.chck").click(
+			function() {
+				g = $(this).children(".glyphicon");
+				provider = $(this).children("span").attr("name");
+				if(g.hasClass("glyphicon-check")) {
+					$(this).removeClass("active");
+					g.removeClass("glyphicon-check");
+					g.addClass("glyphicon-unchecked");
+					$(".provider_list").children("[name=" + provider + "]").remove();
+				} else {
+					$(this).addClass("active");
+					g.removeClass("glyphicon-unchecked");
+					g.addClass("glyphicon-check");
+					$(".provider_list").append("<a target='_blank' href='/provider/" + provider + "' class='provider' name='" + provider + "'>" + provider + "</a>");
+				}
+			}
+		);
+
+		var oTable;
+		var columns = [];
+		{% for p in nonparametric_fields %}
+		columns.push({"sTitle": "{{ p.name }}", "mData": "{{ p.class }}"});
+		{% endfor %}
+		{% for p in parametric_fields %}
+		columns.push({"sTitle": "{{ p.name }}", "mData": "{{ p.class }}"});
+		{% endfor %}
+
+
+		$("#submit").click(
+			function(e) {
+				e.preventDefault();
+				dict = get_parameters();
+				$(".loader").toggle();
+				$(".results").addClass("blur");
+				$.ajax({
+					url: "/fetch_results",
+					type: "POST",
+					data: JSON.stringify(dict),
+					contentType: 'application/json; charset=utf-8',
+					success: function(data) {
+							$(".loader").toggle();
+							$(".results").removeClass("blur");
+							oTable = $('#result_table').DataTable( {
+									bProcessing: true,
+									bDestroy: true,
+									sDom: "<'row'<'col-md-6'i><'col-md-6'p>r>t<'row'<'col-md-6'l><'col-md-6'f>>",
+									aaData: data['result'],
+									aoColumns: columns
+								});
+						}
+				});
+			}
+		);
+	}
+);
+
+function get_parameters() {
+	var dict = {};
+	{% for p in parametric_fields %}
+	dict["{{ p.class }}_min"] = $(".val.{{ p.class }}.lower").text();
+	dict["{{ p.class }}_max"] = $(".val.{{ p.class }}.upper").text();
+	{% endfor %}
+
+	names = [];
+	$('.chck.active').each(function() {
+		names.push({'provider': $(this).attr("name")});
+	});
+	dict['providers'] = names;
+	return dict;
+}
+
+function initialize_sliders() {
+	var Link = $.noUiSlider.Link;
+
+	{% for p in parametric_fields %}
+	$('.slider.{{ p.class }}').noUiSlider({
+		start: [{{ p.show_start }}, {{ p.show_end }}],
+		step: {{ p.step }},
+		connect: true,
+		range: {'min': {{ p.min }}, 'max': {{ p.max }}},
+		serialization: {
+			lower: [new Link({target: $(".val.{{ p.class }}.lower")})],
+			upper: [new Link({target: $(".val.{{ p.class }}.upper")})],
+			format: {decimals: 0}
+		}
+	});
+	{% endfor %}
+}
+</script>
+{% endblock %}
