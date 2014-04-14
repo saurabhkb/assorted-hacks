@@ -1,0 +1,174 @@
+!!! 5
+html
+	head
+		title Radiant Sky
+		link(rel="icon", type="image/png", href="https://s3.amazonaws.com/radiant-sky/public/images/ui/rs.png")
+		script(src='https://s3.amazonaws.com/radiant-sky/public/javascripts/jquery-1.7.2.min.js')
+		script(src='https://s3.amazonaws.com/radiant-sky/public/javascripts/jquery-ui-1.8.21.custom.min.js')
+		script(src='https://s3.amazonaws.com/radiant-sky/public/javascripts/userpage.js')
+		script(src='/socket.io/socket.io.js')
+		block scripts
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/reset.css')
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/userpage.css')
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/html-elem.css')
+		link(rel='stylesheet', href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/jquery-ui-1.8.21.custom.css')
+		block styles
+		script
+			$(document).ready(
+				function(){
+					//MODAL WINDOW PROPERTIES
+					$(".modal-window").dialog({autoOpen: false, minWidth: 100, minHeight: 100, modal: true, resizable: false, draggable: false});
+					addNavigJs(io);
+					$("#join-course-a").click(function(e){e.preventDefault(); $(".join-course-div").toggle();});
+					$("#join-course-btn").click(
+						function(e){
+							e.preventDefault();
+							var txt = $("#join-course-inp");
+							if(txt.val() == "enter course key" || txt.val() == "" || txt.val().trim() == ""){
+								txt.val("");
+								txt.focus();
+							}
+							else{
+								var ckey = $("#join-course-inp").val();
+								$(".join-course-load").show();
+								$.post("/join_course/", {key: ckey}, function(reply){
+									$(".join-course-load").hide();
+									if(reply == "-1")
+										$("#join-course-result").text("you have already signed up for this course dumbass...")
+									else if(reply == "0")
+										$("#join-course-result").text("making up course keys are we?")
+									else{
+										var obj = JSON.parse(reply);
+										$("#join-course-result").html("<div class='potential-course'>you have signed up for : <br/><a href='/courses/" + obj.course_id + "/main/'>" + obj.course_name + "</a></div>");
+									}
+										
+								});
+							}
+						}
+					);
+				}
+			);
+	body
+		block header
+			#header
+				#site-title-mini
+					a(href="") Radiant Sky
+				#search-div
+					form(action="/search/", method="get")
+						input(type="text", name="q", size="40", autocomplete="off")#search-txtbox.textinput
+						button(style="padding: 3px 14px 0px 14px; margin-left: 3px;")#search-btn.button
+							img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/search1.png")
+				-var right = 10
+				#user-opt-box
+					.user-opt-box-unit(style="right: #{right + 60 + 110 + 80 + 80 + 10}px; top: 0px;")
+						-i = 0
+						each n in notif
+							if n.seen == 0
+								-i = i + 1
+						if i == 0
+							button#not-btn.button #{i}
+						else
+							button#not-btn.button.green-btn #{i}
+					.not-bubble(style="right: #{right + 60 + 110 + 80 + 80 + 10 - 25}px")
+						if notif.length == 0
+							#no-courses no notifications!
+						#notif-list
+							each notification in notif
+								.notification(id="#{notification.id}")
+									if notification.type == "STREAM"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
+														.img
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
+												td
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} posted in
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+									else if notification.type == "ASSIGNMENT"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
+														.img
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
+												td
+													a(href="/courses/#{notification.course_id}/assignments/##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} added an assignment in 
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+									else if notification.type == "RESOURCE"
+										table
+											tr
+												td
+													a(href="/courses/#{notification.course_id}/main/##{notification.reference}")
+														.img
+															img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{notification.img_id}")
+												td
+													a(href="/courses/#{notification.course_id}/resources/##{notification.reference}")
+														.notif-content #{notification.first_name} #{notification.last_name} added a resource in
+															span.notif-course #{notification.course_name}
+															div.notif-event-date #{notification.timestamp}
+
+
+						.not-bubble-arrow-border
+						.not-bubble-arrow
+					.user-opt-box-unit(style="right: #{right + 25 + 110 + 80 + 60}px")
+						a(href="/user/home/") home
+					.user-opt-box-unit(style="right: #{right + 40 + 110 + 80}px")
+						span
+							a(href="#")
+								span#me me
+								span.down-arrow
+					.me-bubble(style="right: #{right + 40 + 110 + 50}px; width: 200px")
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my profile
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my history
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/user/profile") my cabinet
+						.action-bubble-arrow-border
+						.action-bubble-arrow
+					.user-opt-box-unit(style="right: #{right + 50 + 110}px")
+						a(href="/user/home/")
+							span#actions actions
+							span.down-arrow
+					.action-bubble(style="right: #{right + 50 + 110 - 25}px")
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="/create_course") Create a Course
+						.bubble-course-elem
+							.bubble-course-elem-title
+								a(href="#")#join-course-a Join a Course
+							.join-course-div
+								form(action="")
+									input(type="text", placeholder="enter course key", autocomplete="off")#join-course-inp.textinput
+									button(style="padding: 3px 4px 4px 4px; margin-left: 2px;")#join-course-btn.green-btn go
+									.join-course-load(style="position: absolute; right: 57px; top: 69px; display: none;")
+										img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif")
+								.bubble-course-elem#join-course-result(style="color: white;")
+						.action-bubble-arrow-border
+						.action-bubble-arrow
+					#course-list.user-opt-box-unit(style="right: #{right + 60}px")
+						a(href="#")
+							span#mycourses my courses
+							span.down-arrow
+					.bubble
+						-if(course_data.length == 0)
+							#no-courses no courses!
+						each course in course_data
+							.bubble-course-elem
+								.bubble-course-elem-title
+									a(href="/courses/#{course.course_id}/main/") #{course.course_name}
+									span.bubble-course-id #{course.course_label}
+						.bubble-arrow-border
+						.bubble-arrow
+					.user-opt-box-unit(style="padding: 0px 10px 0px 10px; right: #{right - 2}px")
+						a(href="/logout") log out
+		#wrapper
+			block body

@@ -1,0 +1,195 @@
+extends course_skeleton
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$(".assignment").click(
+					function(e){
+						e.preventDefault();
+						var id = $(this).parents(".assgn-unit").attr("id");
+						$("#assgn-details").dialog("open");
+						$("#assgn-details").dialog("option", "title", $(this).find(".assgn-title").text());
+						$("#assgn-details").dialog("option", "width", 500);
+						$("#assgn-details").dialog("option", "height", 300);
+						$.post("/courses/#{loc.course_id}/assignments/details/", {id: id}, function(json){
+							var obj = JSON.parse(json);
+							$("#loading").fadeOut(200);
+							$("#det-assgn-content").text(obj.assignment_content);
+						});
+					}
+				);
+				var socket = io.connect("/assignment_comments");
+				$(".comments a").click(
+					function(e){
+						var title = $(this).parents("table").find(".assgn-title").text();
+						e.preventDefault();
+						$(".load-comments").show();
+						$("#comments-window").dialog("open");
+						$("#comments-window").dialog("option", "width", 600);
+						$("#comments-window").dialog("option", "title", "Comment for " + title);
+						$("#comments-window").dialog("option", "height", 500);
+						$("#comments-window").dialog({close: function(e, ui){$("#comment-list").html("");}});
+						var uid = "#{user.user_id}";
+						var aid = $(this).parents(".assgn-unit").attr("id");
+						$("#comments-window #user_id").val(uid);
+						$("#comments-window #assgn_id").val(aid);
+						$.post("/courses/#{loc.course_id}/assignments/" + aid + "/comments/", {user_id: uid}, function(json){
+							$(".load-comments").hide();
+							var com = JSON.parse(json);
+							for(var i = 0; i < com.length; i++)
+								$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-date'>" + new Date(com[i].time * 1000).toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+						});
+						return false;
+					}
+				);
+				$("#add-comment-btn").click(
+					function(e){
+						e.preventDefault();
+						var cmment = $("#comments-window #comment-box").val().trim();
+						var target = $("#comments-window #user_id").val();
+						var aid = $("#comments-window #assgn_id").val();
+						if(cmment){
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-date'>" + new Date().toString("hh:mm d MMM, yyyy") + "</div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							socket.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: aid}));
+						}
+						$("#comment-box").val("");
+						$("#comment-box").focus();
+						return false;
+					}
+				);
+				for(var i = 0; i < $(".assgn-desc").length; i++)
+				{
+					if($(".assgn-desc").eq(i).text().length > 300)
+						$(".assgn-desc").eq(i).text($(".assgn-desc").eq(i).text().slice(0, 300) + " ...");
+				}
+				$(".marks").click(
+					function(){
+						if($(this).find("input").hasClass("disabled")) return;
+						$(this).find("input").addClass("editable_inp");
+						$(this).find("input").prop("readonly", "");
+					}
+				);
+
+				$(document).keypress(
+					function(e){
+						if(e.which == 13){
+							var activemks  = $(".marks input:focus");
+							if(activemks.hasClass("disabled")) return;
+							var assg_id = activemks.siblings(".mks_assg_id").val();
+							if(activemks != null){
+								var l = activemks.parents("table").find(".loader");
+								if(activemks.val() && activemks.val() != "" && activemks.val().trim() != "" && isNaN(activemks.val()) == false && activemks.val() <= parseInt(activemks.parents("table").find(".outof").text())){
+									activemks.removeClass("editable_inp");
+									activemks.blur();
+									l.show();
+									$.post("/courses/#{loc.course_id}/assignments/"+ assg_id + "/update_mks/", {user_id: #{user.user_id}, mks: activemks.val()}, function(resp){l.hide();});
+								}
+							}
+						}
+					}
+				);
+			}
+		);
+block styles
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/people.css', rel='stylesheet')
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/comment.css', rel='stylesheet')
+block maincontent
+	#title-person.maincol-content
+		table
+			tr
+				td
+					a(href="/user/#{user.user_id}/")
+						img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/post/#{user.img_id}", style="border-radius: 3px;")
+				td(style="padding-left: 20px;")
+					a(href="/user/#{user.user_id}/")
+						#{user.first_name} #{user.last_name}
+	#contrib.maincol-content
+		each c in contrib
+			.assgn-unit(id="#{c.id}")
+				table.parent-table
+					tr
+						td(style="width: 33em;")
+							.assignment
+								table(style="width: 100%;")
+									tr
+										td
+											.assgn-title #{c.assignment_title}
+									tr
+										td
+											span.date-title start date:
+											span.start-date #{c.start_date}
+											span(style="margin-left: 20px;").date-title end date:
+											span.end-date #{c.end_date}
+									tr
+										td		
+											.assgn-desc #{c.assignment_content}
+						td(style="width: 7em; text-align: center;")
+							if c.filename != null
+								if c.submission_date > c.end_date
+									span.sub-date(style='color: red;') #{c.submission_date}
+								else
+									span.sub-date(style="color: green;") #{c.submission_date}
+							else
+								span.sub-date
+									|--
+						td(style="width: 15em;")
+							.submission
+								if c.filename != null
+									.yes-sub
+										a(href="/submissions/#{c.submission_id}", target="_window") #{c.filename}
+								else
+									.no-sub No Submission
+						td(style="width: 5em; text-align: center")
+							.comments
+								a(href="#")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/chat.png", title="comments")
+						td(style="width: 7em;")
+							-if(c.marks == null)
+								.grade(style="opacity: 0.5")
+									if c.marks == null
+										-c.marks = 0
+									table
+										tr
+											td
+												span.marks
+													input(type="text", readonly="readonly", value="#{c.marks}", class="invisible_inp disabled")
+													input(type="hidden", value="#{c.assignment_id}", class="mks_assg_id")
+											td
+												span.slash /
+											td
+												span.outof #{c.total_marks}
+							-else
+								.grade
+									if c.marks == null
+										-c.marks = 0
+									table
+										tr
+											td
+												span.marks
+													input(type="text", readonly="readonly", value="#{c.marks}", class="invisible_inp")
+													input(type="hidden", value="#{c.assignment_id}", class="mks_assg_id")
+											td
+												span.slash /
+											td
+												span.outof #{c.total_marks}
+											td
+												span
+													img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif", style="display: none; margin-left: 5px;").loader
+
+
+	#assgn-details.modal-window
+		#loading
+			img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
+		.modal-content
+			#det-assgn-content(style="color: black; font-size: 0.9em;")
+
+	#comments-window.modal-window
+		.modal-content
+			#comment-list
+			#add-comment
+				form
+					input(type="hidden", id="user_id", name="user_id", value="#{me.user_id}")
+					input(type="hidden", id="user_id", name="assgn_id")#assgn_id
+					textarea#comment-box.textinput
+					br
+					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button

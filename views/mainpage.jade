@@ -1,0 +1,124 @@
+extends course_skeleton
+block scripts
+	script(src="/socket.io/socket.io.js");
+	script
+		function attachJSON(from, msg){
+			obj = JSON.parse(from);
+			msg_obj = JSON.parse(msg);
+			if(!obj || !msg_obj) return;
+			$("#stream").prepend("<div class='post'><table><tr><td style='padding-right: 20px'><div class='post-author-img'><a href='/user/#{me.user_id}/home'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}' /></td><td><div class='post-author'><a href='/user/" + obj.id+ "/home'>" + obj.first_name + " " + obj.last_name + "</a></div><div class='post-date-time'>" + prettyDate(msg_obj.post_timestamp) + "</div><div class='post-content'>" + msg_obj.post_content + "</div></td></tr></div>"
+			);
+		}
+		function attachString(from, msg, time){
+			$("#stream").prepend("<div class='post'><table><tr><td style='padding-right: 20px'><div class='post-author-img'><a href='/user/#{me.user_id}/home'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}' /></td><td><div class='post-author'><a href='/user/#{me.user_id}/home'>" + from + "</a></div><div class='post-date-time'>" + prettyDate(time) + "</div><div class='post-content'>" + msg + "</div></td></tr></div>"
+			);
+		}
+
+		$("document").ready(
+			function(){
+				var socket = io.connect("/streamposts");
+				socket.on('connect', function(){$("#loading").fadeOut(200);});
+				socket.on('user post', attachJSON);
+				$("#post-button").click(
+					function(e){
+						e.preventDefault();
+						if($("#post-box").val().trim() == ""){
+							$("#post-box").focus();
+							$("#post-box").val("");
+							return false;
+						}
+						var time = (new Date()).getTime() / 1000;
+						attachString("#{me.first_name} #{me.last_name}", $("#post-box").val().trim(), time);
+						socket.emit('user post', JSON.stringify({course_id: "#{loc.course_id}", post_content: $("#post-box").val().trim(), post_timestamp: time}));
+						$("#post-box").val("");
+					return false;
+					}
+				);
+
+				$("#post-vis-btn button").click(
+					function(){
+						$("#post-area").toggle(300);
+						if($(this).text() == "+")
+							$(this).text("-");
+						else if($(this).text() == "-")
+							$(this).text("+");
+					}
+				);
+				$(".comment-opt").click(
+					function(){
+						var rep = $(this).parents(".post-det-table").find(".reply-sect");
+						rep.toggle(200);
+						rep.find(".reply-text").focus();
+					}
+				);
+				/*$(".post").mouseover(function(){$(this).find(".comment-opt").show();});
+				$(".post").mouseout(function(){$(this).find(".comment-opt").hide();});*/
+
+				$(".add-reply-btn").click(
+					function(e){
+						e.preventDefault();
+						var txt = $(this).siblings(".reply-text");
+						if(!txt.val() || !txt.val().trim())
+							txt.focus();
+						else
+							$(this).parents(".reply-sect").children(".reply-list").append("<div class='reply-unit'><table><tr><td><a href='/user/#{me.user_id}/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}' title='#{me.first_name} #{me.last_name}'/></a></td><td><div class='reply-unit-text'>" + $(this).siblings(".reply-text").val() + "</div></td></tr></table></div>");
+						txt.val("");
+					}
+				);
+				$(".add-reply-btn").mouseover(
+					function(){$(this).children("img").css("opacity", "1");}
+				);
+				$(".add-reply-btn").focus(
+					function(){$(this).children("img").css("opacity", "1");}
+				);
+				$(".add-reply-btn").mouseout(
+					function(){$(this).children("img").css("opacity", "0.4");}
+				);
+				$(".add-reply-btn").blur(
+					function(){$(this).children("img").css("opacity", "0.4");}
+				);
+
+			}
+		);
+block styles
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/course.css', rel='stylesheet')
+block maincontent
+	if role == 1 || role == 0
+		#post-vis-btn(style="text-align: center; padding: 10px")
+			button(style="font-weight: bold; padding: 1px 15px; font-size: 1.3em").green-btn +
+	#streamholder.maincol-content
+		#post-area
+			form#post-message
+				textarea(tabindex=1, style="width: 30em; margin: 0 auto;")#post-box.textinput
+				input(type="submit", value="post", tabindex=2)#post-button.button post
+		#stream
+			#loading
+				img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif", alt="loading...")
+			if portal == "main" || portal == ""
+				each post in prev_posts
+					a(name="#{post.id}")
+						.post
+							table.post-det-table
+								tr
+									td(style="padding-right: 20px")
+										.post-author-img
+											a(href="/user/#{post.user_id}/home/")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/post/#{post.img_id}", title="#{post.first_name} #{post.last_name}")
+									td(style="width: 57em;")
+										.post-author
+											a(href="/user/#{post.user_id}/home/") #{post.first_name} #{post.last_name}
+										.post-date-time #{post.post_timestamp}
+										.post-content #{post.post_content}
+									td
+										.comment-opt
+											img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/bubble.png")
+								tr
+									td
+									td
+										.reply-sect(style="display: none")
+											.reply-list
+											.reply-add-box
+												input(type="text").reply-text.textinput
+												button.button(style="padding: 5px 10px 2px 10px;").add-reply-btn
+													img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/next1.png", style="opacity: 0.4")
+

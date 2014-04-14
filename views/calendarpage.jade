@@ -1,0 +1,96 @@
+extends course_skeleton
+block styles
+	link(rel="stylesheet", href="https://s3.amazonaws.com/radiant-sky/public/stylesheets/cal.css")
+	link(rel="stylesheet", href="https://s3.amazonaws.com/radiant-sky/public/stylesheets/basic-jquery-slider.css")
+block scripts
+	script(src="https://s3.amazonaws.com/radiant-sky/public/javascripts/basic-jquery-slider.min.js")
+	script
+		$("document").ready(
+			function(){
+				$("#slider-cal").bjqs({
+					'height': 340,
+					'width': 1120,
+					'centerMarkers': false,
+					'centerControls': false,
+					'automatic': false,
+					'animation': 'slide',
+					'animationDuration': 500,
+					'rotationSpeed': 5000,
+					'nextText': '<div class="right-arr"></div>',
+					'prevText': '<div class="left-arr"></div>'
+				});
+				var arr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+				var lilist = $(".bjqs-markers li a");
+				for(var i = 0; i < lilist.length; i++){
+					if(i == 0) lilist.eq(i).css("margin-left", "110px");
+					lilist.eq(i).text(arr[i]);
+				}
+				$("#create-event-btn").click(
+					function(){
+						$("#update-cal").dialog("open");
+						$("#update-cal").dialog("option", "title", "Create an Event");
+						$("#update-cal").dialog("option", "width", "500");
+					}
+				);
+			}
+		);
+
+block maincontent
+	#update-cal.modal-window
+		.modal-content
+			form
+				p
+					textarea(style="height: 15em; width: 30em;").textinput
+				p
+					input(type="submit", value="create").button
+					input(type="submit", value="cancel").cancel.button
+	#create-event
+		button.green-btn(style="padding: 5px 10px;")#create-event-btn Create an Event
+	#slider-cal.maincol-content
+			ul.bjqs
+				li#jan
+					.month-name January
+					.month-content
+						|some thing
+				li#feb
+					.month-name February
+					.month-content
+						|some thing
+				li#mar
+					.month-name March
+					.month-content
+						|some thing
+				li#apr
+					.month-name April
+					.month-content
+						|some thing
+				li#may
+					.month-name May
+					.month-content
+						|some thing
+				li#jun
+					.month-name June
+					.month-content
+						|some thing
+				li#jul
+					.month-name July
+					.month-content
+						|some thing
+				li#aug
+					.month-name August
+					.month-content
+						|some thing
+				li#sep
+					.month-name September
+					.month-content
+						|some thing
+				li#oct
+					.month-name October
+					.month-content
+						|some thing
+				li#nov
+					.month-name November
+					.month-content
+						|some thing
+				li#dec
+					.month-name December

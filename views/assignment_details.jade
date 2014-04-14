@@ -1,0 +1,170 @@
+extends course_skeleton
+block styles
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/assgn.css', rel='stylesheet')
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/comment.css', rel='stylesheet')
+block scripts
+	script
+		$(document).ready(
+			function(){
+				var socket = io.connect("/assignment_comments");
+				$(".comments a").click(
+						function(e){
+							e.preventDefault();
+							var name = $(this).parents("table").find(".user-name").text();
+							$(".load-comments").show();
+							$("#comments-window").dialog("open");
+							$("#comments-window").dialog("option", "width", 600);
+							$("#comments-window").dialog("option", "title", "Comment for " + name);
+							$("#comments-window").dialog("option", "height", 500);
+							$("#comments-window").dialog({close: function(e, ui){$("#comment-list").html("");}});
+							var uid = $(this).parents("td").children(".comment_user_id").val();
+							$("#comments-window #user_id").val(uid);
+							$.post("/courses/#{loc.course_id}/assignments/#{assg.id}/comments/", {user_id: uid}, function(json){
+								$(".load-comments").hide();
+								var com = JSON.parse(json);
+								for(var i = 0; i < com.length; i++)
+									$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/" + com[i].user_id + "/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/" + com[i].img_id + "', title='" + com[i].first_name + " " + com[i].last_name + "'/></a></div></td><td><div class='comment-text'>" + com[i].comment + "</div></td></tr></table></div>");
+							});
+							return false;
+						}
+				);
+				$("#add-comment-btn").click(
+					function(e){
+						e.preventDefault();
+						var cmment = $("#comments-window #comment-box").val().trim();
+						var target = $(this).siblings("#user_id").val();
+						if(cmment){
+							$("#comment-list").append("<div class='comment-unit'><table><tr><td><div class='comment-img'><a href='/user/#{me.user_id}/'><img src='https://s3.amazonaws.com/radiant-sky/public/images/user/#{me.img_id}', title='#{me.first_name} #{me.last_name}'/></a></div></td><td><div class='comment-text'>" + cmment + "</div></td></tr></table></div>");
+							socket.emit('assignment comment', JSON.stringify({target_id: target, comment: cmment, a_id: #{assg.id}}));
+						}
+						$("#comment-box").val("");
+						$("#comment-box").focus();
+						return false;
+					}
+				);
+				$(".marks").click(
+					function(){
+						if($(this).find("input").hasClass("disabled")) return;
+						$(this).find("input").addClass("editable_inp");
+						$(this).find("input").prop("readonly", "");
+					}
+				);
+
+				$(document).keypress(
+					function(e){
+						if(e.which == 13){
+							var activemks  = $(".marks input:focus");
+							if(activemks.hasClass("disabled")) return;
+							var user_id = $(".marks input:focus").siblings(".mks_user_id").val();
+							if(activemks != null){
+								var l = activemks.parents("table").find(".loader");
+								if(activemks.val() && activemks.val() != "" && activemks.val().trim() != "" && isNaN(activemks.val()) == false && activemks.val() <= parseInt(activemks.parents("table").find(".outof").text())){
+									activemks.removeClass("editable_inp");
+									activemks.blur();
+									l.show();
+									$.post("/courses/#{loc.course_id}/assignments/#{assg.id}/update_mks/", {user_id: user_id, mks: activemks.val()}, function(resp){l.hide();});
+								}
+							}
+						}
+					}
+				);
+			}
+		);
+block maincontent
+	#title-assgnmnt.maincol-content
+		#title-assgnmnt-name #{assg.assignment_title}
+		#title-assgnmnt-expln #{assg.assignment_content}
+		#title-dates
+			table
+				tr
+					td
+						span.date-title start date:
+						span.start-date #{assg.start_date}
+					td(style="padding-left: 20px;")
+						span.date-title end date:
+						span.end-date #{assg.end_date}
+		
+	#user-list.maincol-content
+		if assgn_data.length == 0
+			div(style="color: gray; text-align: center;") No students
+		each u in assgn_data
+			.user-unit
+				table(style="width: 100%;")
+					tr
+						td(style="width: 20px;")
+							.user-img
+								a(href="/user/#{u.user_id}/")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{u.img_id}")
+						td(style="width: 18em;")
+							.user-name
+								a(href="/user/#{u.user_id}/") #{u.first_name} #{u.last_name}
+						td(style="width: 7em;")
+							.sub-date
+								if u.submission_date != null
+									if assg.end_date > u.submission_date
+										span(style='color: green') #{u.submission_date}
+									else
+										span(style='color: red') #{u.submission_date}
+								else
+									.no-sub-date ---
+						td(style="width: 15em;")
+							.user-sub
+								if u.filename == null
+									.no-sub no submission
+								else if u.filename != null
+									.yes-sub
+										a(href="/submissions/#{u.submission_id}", target="_window") #{u.filename}
+						td(style="width: 7em;")
+							input(type="hidden", value="#{u.user_id}", class="comment_user_id")
+							.comments
+								a(href="")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/chat.png", style="width: 25px;", title="comments")
+						td(style="width: 7em;")
+							.grade
+								-var mks = 0
+								if u.marks != null
+									-var mks = u.marks
+								- if(u.marks == null)
+									table(style="opacity: 0.5")
+										tr
+											td
+												span.marks
+													if u.marks != null
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp")
+													else
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp disabled")
+													input(type="hidden", value="#{u.user_id}", class="mks_user_id")
+											td
+												span.slash /
+											td
+												span.outof #{assg.total_marks}
+											td
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif", style="margin-left: 5px; display: none;").loader
+
+								- else
+									table
+										tr
+											td
+												span.marks
+													if u.marks != null
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp")
+													else
+														input(type="text", readonly="readonly", value="#{mks}", class="invisible_inp disabled")
+													input(type="hidden", value="#{u.user_id}", class="mks_user_id")
+											td
+												span.slash /
+											td
+												span.outof #{assg.total_marks}
+											td
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader_small.gif", style="margin-left: 5px; display: none;").loader
+	#comments-window.modal-window
+		.modal-content
+			#comment-list
+				.load-comments
+					img(src="https://s3.amazonaws.com/radiant-sky/public/images/ui/loader.gif")
+			#add-comment
+				form
+					input(type="hidden", id="user_id", name="user_id")
+					textarea#comment-box.textinput
+					br
+					input(type="submit", value="post", style="margin: 0")#add-comment-btn.button

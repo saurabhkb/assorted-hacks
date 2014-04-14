@@ -1,0 +1,42 @@
+extends course_skeleton
+block styles
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/people.css', rel='stylesheet')
+block maincontent
+	#people-list.maincol-content
+		.instr-box(style="border-bottom: thin dashed rgb(200, 200, 200); padding-bottom: 20px; margin-bottom: 20px;")
+			table
+				tr
+					td
+						.heading Instructor
+				tr
+					td
+						if people.length > 0 && people[0].role == 1
+							.person
+								table
+									tr
+										td
+											a(href="/user/#{people[0].user_id}/")
+												img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{people[0].img_id}")
+										td(style="padding-left: 20px;")
+											a(href="/user/#{people[0].user_id}/", style="text-transform: capitalize") #{people[0].first_name} #{people[0].last_name}
+						else
+							div(style="color: red;").person no instructor
+		table(style="width: 100%;")
+			tr
+				td
+					.heading Students
+			each user in people
+				if user.role == 0
+					td
+						.person
+							table
+								tr
+									td
+										a(href="/user/#{user.user_id}/")
+											img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/notif/#{user.img_id}")
+									td(style="padding-left: 20px; width: 50em")
+										a(href="/user/#{user.user_id}/", style="text-transform: capitalize") #{user.first_name} #{user.last_name}
+									if role == 1
+										td
+											a(href="people/#{user.user_id}/instr", style="font-size: 0.85em;") View Course Interaction
+					tr

@@ -1,0 +1,8 @@
+extends skeleton
+block styles
+	link(rel="stylesheet", href="https://s3.amazonaws.com/radiant-sky/public/stylesheets/profile.css")
+block body
+	#profile-img(style="background-image: url(https://s3.amazonaws.com/radiant-sky/public/images/user/profile/#{user.img_id})")
+		#profile-title
+			#profile-name
+				a(href="#") #{user.first_name} #{user.last_name}

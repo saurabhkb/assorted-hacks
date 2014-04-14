@@ -1,0 +1,117 @@
+extends course_skeleton
+block styles
+	link(href='https://s3.amazonaws.com/radiant-sky/public/stylesheets/resource.css', rel='stylesheet')
+	style.
+                .ui-widget-content{border: none !important;}
+                .ui-state-active{background: maroon !important; border-radius: 3px !important; border: none !important;}
+                .ui-state-active a{color: white !important;}
+                .ui-tabs .ui-tabs-nav li.ui-tabs-selected{padding: 0 !important;}
+                .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default{border: none !important}
+                .textinput{width: 350px;}
+                textarea{height: 50px;}
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#upload-res").click(
+					function(){
+						$("#add-res-window").dialog("open");
+						$("#add-res-window").dialog("option", "width", 450);
+						$("#add-res-window").dialog("option", "title", "Add a Resource");
+						$("#add-res-window").dialog("option", "minHeight", 100);
+					}
+				);
+				$("#tabs").tabs();
+				$("#submit-res").click(
+					function(e){
+						if(!$("#upload_file").val() || $("#vid_embed").val() == ""  || $("#link_url").val() == ""))
+						{
+							e.preventDefault();
+							return false;
+						}
+					}
+				);
+			}
+		);
+block maincontent
+	if role == 1 || role == 0
+		#add-resource
+			button(style="padding: 5px 10px")#upload-res.green-btn Add a Resource
+	if role == 1 || role == 0
+		#add-res-window.modal-window
+			.modal-content
+				form(action="/courses/#{loc.course_id}/resources/file_upload", method="post", enctype="multipart/form-data")
+					#tabs
+						ul
+							li
+								a(href="#tabs-1") Upload a File
+							li
+								a(href="#tabs-2") Embed a Video
+							li
+								a(href="#tabs-3") Add a Link
+						#tabs-1
+							p
+								input(type="file", name="upload_file")#upload_file
+							p
+								textarea(name="upload_file_expln", placeholder="Explain the Resource").textinput
+						#tabs-2
+							p
+								input(type="text", placeholder="Link to the Video", name="embed_video")#vid_embed.textinput
+							p
+								textarea(name="embed_video_expln", placeholder="Explain the Resource").textinput
+						#tabs-3
+							p
+								input(type="text", placeholder="Name of Link", name="add_link")#link_name.textinput.msg
+							p
+								input(type="text", placeholder="URL of Link", name="add_link_url")#link_url.textinput.msg 
+							p
+								textarea(name="add_link_expln", placeholder="Explain the Resource").textinput
+					p
+						input(type="submit", value="done")#submit-res.button
+						input(type="submit", value="cancel", style="margin-left: 10px;").cancel.button
+	#resource-list.maincol-content
+		if resources.length == 0 && links.length == 0
+			div(style="color: rgb(100, 100, 100); width: 10em; margin: 0px auto; text-align: center;") no resources
+		each res in resources
+			.resource-unit
+				.resource-link(id="#{res.id}")
+					a(href="/files/#{res.filename}", target="_window") #{res.filename}
+				.resource-author
+					table
+						tr
+							td
+								.table-text(style="margin-right: 4px;") added by
+							td
+								a(href="/user/#{res.user_id}/")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/tiny/#{res.img_id}", style="vertical-align: middle")
+							td
+								a(href="/user/#{res.user_id}/") #{res.first_name} #{res.last_name}
+							td
+								.table-text(style="margin-left: 4px;") on
+							td
+								.resource-date #{res.upload_date}
+				.resource-expln #{res.explanation}
+		each res in links
+			.resource-unit
+				.resource-link(id="#{res.id}")
+					if res.link_type == "HYPERLINK"
+						a(href="#{res.link_url}", target="_window") #{res.link_name}
+					else if res.link_type == "VIDEO_EMBED"
+						iframe(src="#{res.link_url}")
+				.resource-author
+					table
+						tr
+							td
+								.table-text(style="margin-right: 4px;") added by
+							td
+								a(href="/user/#{res.user_id}/")
+									img(src="https://s3.amazonaws.com/radiant-sky/public/images/user/tiny/#{res.img_id}", style="vertical-align: middle")
+							td
+								a(href="/user/#{res.user_id}/") #{res.first_name} #{res.last_name}
+							td
+								.table-text(style="margin-left: 4px;") on
+							td
+								.resource-date #{res.upload_date}
+				.resource-expln #{res.explanation}
+
+
