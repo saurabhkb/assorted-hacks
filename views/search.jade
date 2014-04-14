@@ -1,0 +1,65 @@
+extends layout
+block styles
+	link(href="/stylesheets/search.css", rel="stylesheet")
+block scripts
+	script
+		$("document").ready(
+			function() {
+				var ccap_toggle = 0;
+				$(".ccap.title").click(
+					function() {
+						var t = $(".result-list .result-unit");
+						if(ccap_toggle)
+							t.sort(function(a, b) {if(parseInt($(a).children(".ccap").text()) > parseInt($(b).children(".ccap").text())) return true; else return false;});
+						else 
+							t.sort(function(a, b) {if(parseInt($(a).children(".ccap").text()) < parseInt($(b).children(".ccap").text())) return true; else return false;});
+						ccap_toggle = !ccap_toggle;
+						$(".result-list").html(t);
+					}
+				);
+				var cmarket_toggle = 0;
+				$(".cmarket.title").click(
+					function() {
+						var t = $(".result-list .result-unit");
+						if(cmarket_toggle)
+							t.sort(function(a, b) {if($(a).children(".cmarket").text() > $(b).children(".cmarket").text()) return true; else return false;});
+						else 
+							t.sort(function(a, b) {if($(a).children(".cmarket").text() < $(b).children(".cmarket").text()) return true; else return false;});
+						cmarket_toggle = !cmarket_toggle;
+						$(".result-list").html(t);
+					}
+				);
+				var cname_toggle = 0;
+				$(".cname.title").click(
+					function() {
+						var t = $(".result-list .result-unit");
+						if(cname_toggle)
+							t.sort(function(a, b) {if($(a).children("a").text() > $(b).children("a").text()) return true; else return false;});
+						else 
+							t.sort(function(a, b) {if($(a).children("a").text() < $(b).children("a").text()) return true; else return false;});
+						cname_toggle = !cname_toggle;
+						$(".result-list").html(t);
+					}
+				);
+
+			}
+		);
+
+block body
+	#search-result-wrapper
+		if r.length == 0
+			.no-result No results matched your query!
+		else
+			.result-unit(style="background: none !important;")
+				.cname.title Company Name
+				.cmarket.title Market
+				.ccap.title Market Cap
+			hr
+			.result-list
+				each d in r
+					.result-unit
+						a(href="/company/#{d.name}") 
+							.cname #{d.name}
+						.cmarket #{d.market}
+						.ccap #{d.market_cap}
+

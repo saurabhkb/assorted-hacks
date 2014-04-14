@@ -1,0 +1,37 @@
+#search-result-wrapper {
+	width: 40em;
+	margin: 0 auto;
+}
+.result-unit {
+	border-radius: 6px;
+}
+.result-unit:HOVER{
+	background-color: rgb(240, 240, 240);
+}
+.cname, .cmarket, .ccap {
+	display: inline-block;
+	padding: 20px;
+	text-align: left;
+}
+.cname {width: 10em;}
+.cmarket {width: 8em;}
+.ccap {width: 7em;}
+.cname {
+	vertical-align: middle;
+}
+.cmarket, .ccap {color: rgb(70, 70, 70);}
+.no-result {
+	text-align: center;
+	color: red;
+	font-size: 1em;
+}
+.title {
+	color: black;
+	font-weight: bold;
+	font-size: 1em;
+	vertical-align: middle;
+	cursor: pointer;
+}
+.title:HOVER {
+	text-decoration: underline;
+}

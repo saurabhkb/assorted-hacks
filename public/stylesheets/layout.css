@@ -1,0 +1,70 @@
+body {
+	padding: 0;
+	margin: 0;
+}
+#topbar {
+	background-color: midnightblue;
+	background-image: url(/images/bghead.png);
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3em;
+	text-align: center;
+	z-index: 999;
+}
+#site-title-mini, #search-div, #quick-links {
+	display: inline-block;
+}
+#site-title-mini {
+	position: absolute;
+	left: 0;
+	top: 0;
+	padding: 10px;
+}
+#site-title-mini a{
+	color: white;
+	font-weight: bold;
+}
+#search-div input {
+	width: 30em;
+	padding: 5px;
+	margin-top: 8px;
+}
+#search-div button {
+	background: none !important;
+	background-image: none !important;
+	box-shadow: none;
+}
+#search-div img {
+	font-size: 0;
+	position: relative;
+	right: 38px;
+	top: 0px;
+}
+#quick-links ul {
+	position: absolute;
+	right: 0;
+	top: 0;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+#quick-links ul li{
+	display: inline-block;
+	padding: 10px;
+}
+#quick-links ul li a{
+	color: white;
+}
+#quick-links button {
+	font-weight: bold;
+	font-size: 0.9em;
+}
+#maincontent {
+	margin-top: 5em;
+}
+#quick-links .btn {
+	font-size: 0.9em;
+	font-weight: bold;
+}

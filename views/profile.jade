@@ -1,0 +1,163 @@
+extends layout
+block scripts
+	script
+		$(document).ready(
+			function(){
+				$("#tabs").tabs();
+				$("#basic-details-btn").click(
+					function() {
+						$("#basic-load").show();
+						$.post(
+							"/edit_profile",
+							{
+								type: 1,
+								fn: $("#fn").val(),
+								mn: $("#mn").val(),
+								ln: $("#ln").val(),
+								pno: $("#pno").val()
+							},
+							function(r){
+								if(r == "1") {
+									$("#basic-load").html("<img src='/images/greentick.png' alt='done' style='width: 28px;'/>");
+									$("#basic-load img").fadeOut(3000);
+								}
+								else $("#basic-load").html("error!");
+							}
+						);
+					}
+				);
+				$("#security-details-btn").click(
+					function() {
+						$("#security-load").show();
+						$.post(
+							"/edit_profile",
+							{
+								type: 2,
+								sq: $("#sq").val(),
+								sa: $("#sa").val()
+							},
+							function(r){
+								if(r == "1") {
+									$("#security-load").html("<img src='/images/greentick.png' alt='done' style='width: 28px;'/>");
+									$("#security-load img").fadeOut(3000);
+								}
+								else $("#security-load").html("error!");
+							}
+						);
+					}
+				);
+				$(".toggle").click(
+					function(e) {
+						e.preventDefault();
+						$(this).parents("tr").find(".asterisk").toggle();
+						$(this).parents("tr").find(".hide").toggle();
+						if($(this).text() == "show") {
+							$(this).text("hide");
+						}else
+						if($(this).text() == "hide") {
+							$(this).text("show");
+						}
+					}
+				);
+			}
+		);
+block styles
+	link(href="/stylesheets/profile.css", rel="stylesheet")
+	
+block body
+	#profile-wrapper
+		#tabs
+			ul
+				li
+					a(href="#tabs-1") Basic Details
+				li
+					a(href="#tabs-2") Bank Details
+				li
+					a(href="#tabs-3") Security Details
+			#tabs-1
+				table
+					tr
+						td
+							.fieldname Email-id
+						td
+							.fieldvalue #{user.emailid}
+					tr
+						td
+							.fieldname First Name
+						td
+							.fieldvalue
+								input(type="text", value="#{user.first_name}", id="fn")
+					tr
+						td
+							.fieldname Middle Name
+						td 
+							.fieldvalue
+								input(type="text", value="#{user.middle_name}", id="mn")
+					tr
+						td
+							.fieldname Last Name
+						td 
+							.fieldvalue
+								input(type="text", value="#{user.last_name}", id="ln")
+					tr
+						td
+							.fieldname Phone Number
+						td
+							.fieldvalue
+								input(type="text", value="#{user.cell_no}", id="pno")
+					tr
+						td
+							input(type="submit", value="save basic details")#basic-details-btn
+						td
+							#basic-load
+								img(src="/images/load.gif", alt="loading...")
+
+			#tabs-2
+				table
+					tr
+						td
+							.fieldname Account Number
+						td
+							.fieldvalue #{user.account_no}
+					tr
+						td
+							.fieldname Balance
+						td
+							.fieldvalue #{user.balance}
+			#tabs-3
+				table
+					tr
+						td
+							.fieldname Password (
+								a(href="#", style="color: rgb(0, 153, 214)", class="toggle") show
+								)
+						td
+							.fieldvalue
+								.asterisk *********
+								input(type="text", value="#{user.passwd}", id="pwd", class="hide")
+					tr
+						td
+							.fieldname Security Question
+						td
+							.fieldvalue
+								input(type="text", value="#{user.security_question}", id="sq")
+					tr
+						td
+							.fieldname Security Answer (
+								a(href="#", style="color: rgb(0, 153, 214)", class="toggle") show
+								)
+						td
+							.fieldvalue
+								.asterisk *********
+								input(type="text", value="#{user.security_ans}", id="sa", class="hide")
+					tr
+						td
+							.fieldname Last Login
+						td
+							.fieldvalue #{user.last_login}
+					tr
+						td
+							input(type="submit", value="save security details")#security-details-btn
+						td
+							#security-load
+								img(src="/images/load.gif", alt="loading...")

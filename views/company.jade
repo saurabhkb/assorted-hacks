@@ -1,0 +1,157 @@
+extends layout
+block styles
+	link(href="/stylesheets/company.css", rel="stylesheet")
+block scripts
+	script
+		$("document").ready(
+			function() {
+				$("#purchase-stock-dialog").dialog({modal: true, autoOpen: false, resizable: false, draggable: true});
+				$("#purchase-stock-btn").click(
+					function() {
+						$("#purchase-stock-dialog").dialog("open");
+						$("#purchase-stock-dialog").dialog("option", "title", "Purchase #{c[0].name} Stock");
+						$("#purchase-stock-dialog").dialog("option", "width", "500");
+						$("#purchase-stock-dialog").dialog("option", "height", "250");
+					}
+				);
+				$("#calc").click(
+					function(e) {
+						e.preventDefault();
+						var type = $("#stock-type-select").val();
+						var x = "#" + type;
+						if(!$("#num").val() || !$("#num").val().trim()) {
+							$("#cost").text("");
+							return;
+						}
+						if(!isFinite($("#num").val())) {
+							$("#cost").html("<div style='color: red; font-size: 0.8em;'>invalid</div>");
+							return;
+						}
+						var num = parseFloat($("#num").val());
+						if(isNaN(num)) {
+							$("#cost").html("<div style='color: red; font-size: 0.8em;'>invalid</div>");
+							return;
+						}
+						var price = parseFloat($(x).find(".ltp").text());
+						var cost = num * price;
+						$("#cost").text(cost);
+					}
+				);
+
+				$("#submit-purchase").click(
+					function(e) {
+						e.preventDefault();
+						var num = $("#num").val();
+						var type = $("#stock-type-select").val();
+						$.post("/purchase_stock", {symbol: '#{c[0].symbol}', num: num, type: type}, function(data) {
+							if(data == "-3") alert("invalid input given!");
+							if(data == "-2") alert("insufficient balance for purchase!");
+							if(data == "-1") alert("an internal error occurred!");
+							if(data == "0") alert("stocks purchased successfully!");
+						});
+					}
+				);
+			}
+		);
+block body
+	#company-wrap
+		#company-header
+			#company-name #{c[0].name}
+			#company-symbol (#{c[0].symbol})
+			#market-name #{c[0].market}
+			#stock-options
+				button#purchase-stock-btn Purchase #{c[0].name} Stock
+		#history
+			a(href="/company/#{c[0].name}/history") history
+		#bond
+			a(href="/company/#{c[0].name}/bond") bonds
+		hr
+		#company-stock-details
+			each d in c
+				div(id="#{d.type}").stock-class-det
+					.type-name #{d.type}
+					table.stock-table1.stock-table
+						tr
+							th Prev Close
+							td #{d.prev_close}
+						tr
+							th Open
+							td #{d.open}
+						tr
+							th Bid
+							td #{d.bid}
+						tr
+							th Ask
+							td #{d.ask}
+						tr
+							th 1yr Target Est
+							td #{d.one_year_target_price}
+						tr
+							th Last Trade Price
+							td.ltp #{d.last_trade_price}
+						tr
+							th Dividend
+							td #{d.dividend}
+						tr
+							th Price per Sales
+							td #{d.price_per_sales}
+						tr
+							th Price per Book
+							td #{d.price_per_book}
+					table.stock-table2.stock-table
+						tr
+							th Day's Range
+							td #{d.day_low} - #{d.day_high}
+						tr
+							th Year's Range
+							td #{d.year_low} - #{d.year_high}
+						tr
+							th 200 Day Avg
+							td #{d.twohundred_day_avg}
+						tr
+							th 50 Day Avg
+							td #{d.fifty_day_avg}
+						tr
+							th Volume
+							td #{d.avg_daily_volume}
+						tr
+							th Market Cap
+							td #{d.market_cap}
+						tr
+							th P/E
+							td #{d.PE}
+						tr
+							th EPS
+							td #{d.EPS}
+						tr
+							th PEG
+							td #{d.PEG}
+		#purchase-stock-dialog
+			form
+				table
+					tr
+						td
+							.fieldname Type
+						td
+							.fieldvalue
+								select#stock-type-select
+									each u in c
+										option #{u.type}
+					tr
+						td
+							.fieldname Number
+						td
+							.fieldvalue
+								input(type="text", name="num", autocomplete="off")#num
+					tr
+						td
+							.fieldname Total Cost (Rs)
+						td
+							.fieldvalue#cost
+						td
+							a(href="#", style="color: #0bf")#calc calculate
+					tr
+						td
+							input(type="submit", value="submit")#submit-purchase
+						td
+							button cancel

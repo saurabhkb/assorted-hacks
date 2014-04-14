@@ -1,0 +1,17 @@
+extends skeleton
+block content
+	#wrap
+		#signin-box
+			#signin-form
+				h1 Sign In
+				form(method="POST", action="/signin")
+					p
+					input(type="text", placeholder="Email Id", name="user[email_id]", autocomplete="off")
+					p
+					input(type="password", placeholder="Password", name="user[password]")
+					p
+					input(type="submit", value="Sign In")
+					a(href="/forgot_password", style="margin-left: 20px; vertical-align: middle;") forgot password
+		
+		#signup-link
+			a(href="/signup") Sign Up

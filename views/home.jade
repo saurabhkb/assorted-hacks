@@ -1,0 +1,83 @@
+extends layout
+block styles
+	link(href="/stylesheets/home.css", rel="stylesheet")
+block body
+	marquee
+		each u in s
+			.quote
+				-var t = u.day_change
+				-var v = t.toPrecision(4);
+				|#{u.symbol} (#{u.type}) #{v} %
+				if u.day_change > 0
+					img(src="/images/green_up.png", style="height: 15px;")
+				else
+					img(src="/images/red_down.png", style="height: 15px;")
+
+	.portfolio
+		//#portfolio-title Portfolio
+		.wealth-div
+			.wealth-title Net Bond Value:
+			.wealth-value
+				-var i = 0, sum = 0;
+				-for(i = 0; i < b.length; i++)
+					-sum += b[i].total
+				-sum = sum.toPrecision(6);
+				|$ #{sum}
+		table
+			tr
+				th Symbol
+				th Type
+				th Offer Date
+				th Principal
+				th Yield
+				th Coupon
+				th Maturity
+				th Price
+				th Number Bought
+				th Value
+			each u in b
+				tr
+					td
+						a(href="/company/#{u.name}").symbol #{u.symbol}
+					td #{u.type}
+					td #{u.offer_date}
+					td #{u.principal}
+					td #{u.yield}
+					td #{u.coupon}
+					td #{u.maturity}
+					td #{u.price}
+					td #{u.tot_number}
+					td #{u.total}
+	.portfolio
+		//#portfolio-title Stock Details
+		.wealth-div
+			.wealth-title Net Stock Value:
+			.wealth-value
+				-var i = 0, sum = 0;
+				-for(i = 0; i < s.length; i++)
+					-sum += s[i].total
+				-sum = sum.toPrecision(6)
+				|$ #{sum}
+		table
+			tr
+				th Symbol
+				th Type
+				th Previous Close
+				th Last Trade Price
+				th Ask
+				th Open
+				th Day's Range
+				th Number Bought
+				th Value
+			each u in s
+				tr
+					td
+						a(href="/company/#{u.name}").symbol #{u.symbol}
+					td #{u.type}
+					td #{u.prev_close}
+					td #{u.last_trade_price}
+					td #{u.ask}
+					td #{u.open}
+					td #{u.day_low} - #{u.day_high}
+					td #{u.num_bought}
+					td #{u.total}

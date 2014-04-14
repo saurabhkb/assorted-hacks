@@ -1,0 +1,99 @@
+#company-wrap {
+	width: 70em;
+	margin: 0 auto;
+}
+#company-name {
+	font-size: 2em;
+	display: inline-block;
+}
+#company-symbol {
+	display: inline-block;
+	margin-left: 1em;
+}
+#market-name {
+	color: gray;
+	font-size: 1em;
+	display: inline-block;
+	margin-left: 2em;
+}
+#stock-options, #bond-options {
+	float: right;
+}
+#stock-options button, #bond-options button {
+	font-size: 0.9em;
+	font-weight: bold;
+}
+#company-prev-close {
+	color: orange;
+	font-weight: bold;
+	font-size: 2.4em;
+	display: inline-block;
+}
+hr {
+	border-color: black;
+	border-width: 1px;
+}
+.type-name {
+	padding: 8px;
+	background-color: rgb(235, 235, 235);
+	border-radius: 5px;
+}
+.stock-table, .bond-table {
+	border-spacing: 10px;
+	display: inline-block;
+	width: 25em;
+}
+.stock-table1, .bond-table1 {
+	margin-right: 100px;
+}
+.stock-table th, .bond-table th{
+	text-align: left;
+	padding-right: 4em;
+}
+#purchase-stock-btn, #purchase-bond-btn {
+	text-transform: capitalize;
+}
+#purchase-stock-dialog, #purchase-bond-dialog {
+	background-color: white;
+}
+.ui-widget-content {
+	border: none !important;
+}
+.stock-class-det, .bond-class-det {
+	margin: 20px 0;
+}
+#history, #bond {
+	display: inline-block;
+	margin-top: 1em;
+	vertical-align: middle;
+}
+#bond{float: right;}
+#purchase-stock-dialog table, #purchase-bond-dialog table {
+	border-spacing: 10px;
+}
+
+#purchase-stock-dialog button, #purchase-stock-dialog input[type="submit"], #purchase-bond-dialog button, #purchase-bond-dialog input[type="submit"] {
+	font-size: 0.8em;
+	font-weight: bold;
+}
+#purchase-stock-dialog input[type="text"], #purchase-bond-dialog input[type="text"]{
+	width: 4em;
+	padding: 4px;
+}
+#purchase-stock-dialog .fieldname, #purchase-bond-dialog .fieldname {
+	font-size: 0.9em;
+}
+.offer-date {
+	font-size: 0.85em;
+	color: gray;
+	margin-left: 10px;
+	font-weight: bold;
+}
+#no-bonds {
+	width: 20em;
+	margin: 10em auto;
+	text-align: center;
+	color: black;
+	font-weight: bold;
+	font-size: 1.3em;
+}
