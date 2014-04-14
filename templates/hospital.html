@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hospital</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+
+<!-- Le styles -->
+<link href="/static/css/bootstrap.css" rel="stylesheet">
+<style>
+
+.container {
+	width: 90%;
+}
+
+.navbar-inner {
+	border-radius: 0;
+	background-color: white !important;
+	background-image: none !important;
+	border: none !important;
+	box-shadow: none !important;
+	padding: 60px 0 0 60px !important;
+}
+
+.title {
+	text-shadow: none;
+	font-size: 25px;
+	color: rgb(153, 153, 153);
+	text-decoration: none;
+}
+
+.title:HOVER {
+	color: rgb(0, 129, 194);
+	text-decoration: none;
+}
+
+.set_hosp {
+	width: 500px;
+	margin: 0 auto 50px auto;
+	text-align: center;
+}
+
+#hosp_name {
+	height: 50px;
+}
+
+.buttons {
+	width: 500px;
+	margin: 0 auto;
+	text-align: center;
+}
+#beds_stmt {
+	font-size: 30px;
+	margin-bottom: 30px;
+}
+#num_beds {
+	font-weight: bold;
+}
+#loader {
+	display: none;
+}
+</style>
+
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+<script src="static/js/html5shiv.js"></script>
+<![endif]-->
+
+</head>
+
+<body>
+
+
+
+<!-- NAVBAR
+================================================== -->
+<div class="navbar-wrapper">
+	<div class="container" style="width: 100%">
+		<div class="navbar navbar-inverse">
+			<div class="navbar-inner">
+				<a class="title" href="#">{{ hospital_name }}</a>
+			</div><!-- /.navbar-inner -->
+		</div><!-- /.navbar -->
+	</div> <!-- /.container -->
+</div><!-- /.navbar-wrapper -->
+
+<div class="container">
+	<div class="buttons">
+		<div id="beds_stmt">
+			<span id="num_beds">{{ num_beds }}</span> beds available.
+		</div>
+		<div>
+			<p><button class="btn" id="up"><img src="/static/img/up.png"></button></p>
+			<p><button class="btn" id="down"><img src="/static/img/down.png"></button></p>
+		</div>
+		<div id="loader"><img src="/static/img/loader.gif" /></div>
+	</div>
+</div>
+
+
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="/static/js/jquery-1.9.1.js"></script>
+<script src="http://js.pusher.com/2.1/pusher.min.js" type="text/javascript"></script>
+<script>
+var hospital_id = {{ hospital_id }};
+$("#up").click(function() {
+	$("#loader").toggle();
+	$.post("/update", {hospital_id: hospital_id, change: 1}, function(retval) {
+		$("#loader").toggle();
+		if(retval.status == "OK") {
+			var num = parseInt($("#num_beds").text());
+			$("#num_beds").text(num + 1);
+		} else {
+			alert("an error occurred!");
+		}
+});});
+$("#down").click(function() {
+	$("#loader").toggle();
+	var num = parseInt($("#num_beds").text());
+	if(num > 0) {
+		$.post("/update", {hospital_id: hospital_id, change: -1}, function(retval) {
+			$("#loader").toggle();
+			if(retval.status == "OK") {
+				$("#num_beds").text(num - 1);
+			} else {
+				alert("an error occurred!");
+			}
+		});
+	} else {
+		alert("invalid!");
+	}
+}
+);
+</script>
+<!--<script src="/static/js/main.js"></script>-->
+</body>
+</html>
